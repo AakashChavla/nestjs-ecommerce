@@ -1,28 +1,22 @@
 import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-
-// @Module({
-//   imports: [UsersModule, AuthModule],
-//   controllers: [AppController],
-//   providers: [AppService],
-// })
-// export class AppModule {}
-
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/user.entity';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 
 @Module({
-  imports:[
+  imports: [
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database:'data.db',
-      entities: [User],
+      type: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: 5432,
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || '1234',
+      database: process.env.DB_NAME || 'ecommerce',
       synchronize: true,
+      autoLoadEntities: true,
     }),
     UsersModule,
     AuthModule,
@@ -31,4 +25,4 @@ import { OrdersModule } from './orders/orders.module';
   ]
 })
 
-export class AppModule{}
+export class AppModule { }

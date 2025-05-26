@@ -22,5 +22,5 @@ export class Product{
     quantity: number;
 
     @ManyToOne(()=> Category, category => category.products)
-    category: Category
+    category: Category;
 }

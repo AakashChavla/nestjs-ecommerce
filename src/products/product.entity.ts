@@ -1,10 +1,11 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
 import {Category} from './category.entity';
+import { UUID } from "typeorm/driver/mongodb/bson.typings";
 
 @Entity()
 export class Product{
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn("uuid")
+    id: string;
 
     @Column()
     name: string

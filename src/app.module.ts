@@ -10,11 +10,11 @@ import { OrdersModule } from './orders/orders.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
+      host: process.env.DB_HOST,
       port: 5432,
-      username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || '1234',
-      database: process.env.DB_NAME || 'ecommerce',
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD ,
+      database: process.env.DB_NAME,
       synchronize: true,
       autoLoadEntities: true,
     }),
@@ -22,7 +22,6 @@ import { OrdersModule } from './orders/orders.module';
     AuthModule,
     ProductsModule,
     OrdersModule,
-  ]
+  ],
 })
-
-export class AppModule { }
+export class AppModule {}

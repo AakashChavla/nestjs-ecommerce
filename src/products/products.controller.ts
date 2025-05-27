@@ -22,12 +22,12 @@ export class ProductsController {
     }
 
     @Get(':id')
-    findProductById(@Param('id') id: number) {
+    findProductById(@Param('id') id: string) {
         return this.productsService.findProductById(id);
     }
 
     @Patch(':id')
-    updateProduct(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
+    updateProduct(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
         return this.productsService.updateProduct(id, updateProductDto);
     }
 
@@ -42,17 +42,17 @@ export class ProductsController {
     }
 
     @Get('categories/:id')
-    findCategoryById(@Param('id') id: number) {
+    findCategoryById(@Param('id') id: string) {
         return this.productsService.findCategoryById(id);
     }
 
     @Patch('categories/:id')
-    updateCategory(@Param('id') id: number, @Body() updateCategoryDto: UpdateCategoryDto) {
+    updateCategory(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
         return this.productsService.updateCategory(id, updateCategoryDto);
     }
 
     @Delete('categories/:id')
-    removeCategory(@Param('id') id: number) {
+    removeCategory(@Param('id') id: string) {
         return this.productsService.removeCategory(id);
     }
 }

@@ -23,5 +23,5 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsNumber()
-  categoryId?: number;
+  categoryId?: string;
 }

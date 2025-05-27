@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -6,32 +6,118 @@ import { CreateUserDto } from './create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './update-user.dto';
 
-
 @Injectable()
 export class UsersService {
-    constructor(
-        @InjectRepository(User)
-        private usersRepository: Repository<User>,
-    ){}
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) { }
 
-    async create(createUserDto: CreateUserDto): Promise<User>{
-        const {email, password, role} = createUserDto;
-        const hashedPassword =  await bcrypt.hash(password, 10);
-        const user = this.usersRepository.create({email, password: hashedPassword, role});
-        return this.usersRepository.save(user)
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async create(createUserDto: CreateUserDto) {
+    try {
+      const { name, email, password, role } = createUserDto;
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = this.usersRepository.create({
+        name,
+        email,
+        password: hashedPassword,
+        role,
+      });
+
+      const savedUser = await this.usersRepository.save(user);
+
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'User registered successfully',
+        data: savedUser,
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error registering user',
+        error: error.message,
+      }
+    }
+  }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    profileFilename?: string,
+  ) {
+    try {
+      const updateData = { ...updateUserDto };
+
+      if (profileFilename) {
+        updateData.profile = profileFilename;
+      }
+
+      await this.usersRepository.update(id, updateData);
+      const updatedUser = await this.usersRepository.findOne({ where: { id } });
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'User updated successfully',
+        data: updatedUser,
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error updating user',
+        error: error.message,
+      };
+    }
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.usersRepository.delete(id);
+  }
+
+  async updateToken(id: string, token: string): Promise<void> {
+    await this.usersRepository.update(id, { token });
+  }
+
+  async DeleteUser(id: string, deleteUserId: string): Promise<{ status: number; message: string; error?: string, targetUser?: User }> {
+  try {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user || user.role !== 'admin') {
+      return {
+        status: HttpStatus.UNAUTHORIZED,
+        message: 'User not found or not authorized to delete this user',
+      };
     }
 
-    async findOneByEmail(email: string): Promise<User | null>{
-        return this.usersRepository.findOne({where: { email } });
+    const targetUser = await this.usersRepository.findOne({ where: { id: deleteUserId } });
+    if (!targetUser) {
+      return {
+        status: HttpStatus.NOT_FOUND,
+        message: 'Target user to delete not found',
+      };
     }
 
-    async update(id: number, updateUserDto: UpdateUserDto): Promise<void>{
-        const { password, profile} = updateUserDto;
-        const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
-        await this.usersRepository.update(id,{...(password &&  {password: hashedPassword}), ...(profile && {profile}) });
-    }
+    await this.usersRepository.delete(deleteUserId);
 
-    async remove(id: number): Promise<void>{
-        await this.usersRepository.delete(id);
-    }
+    return {
+      status: HttpStatus.OK,
+      message: 'User deleted successfully',
+      targetUser: targetUser
+    };
+  } catch (error) {
+    return {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error deleting user',
+      error: error.message,
+    };
+  }
+}
+
 }

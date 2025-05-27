@@ -37,7 +37,7 @@ export class ProductsService {
         return this.productsRepository.find({ relations: ['category'] });
     }
 
-    async findProductById(id: number): Promise<Product> {
+    async findProductById(id: string): Promise<Product> {
         const product = await this.productsRepository.findOne({
             where: { id },
             relations: ['category'],
@@ -51,7 +51,7 @@ export class ProductsService {
     }
 
 
-    async updateProduct(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+    async updateProduct(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
         const product = await this.findProductById(id);
         const { categoryId, ...rest } = updateProductDto;
         if (categoryId) {
@@ -67,7 +67,7 @@ export class ProductsService {
         return this.productsRepository.save(product);
     }
 
-    async removeProduct(id: number): Promise<void> {
+    async removeProduct(id: string): Promise<void> {
         const product = await this.findProductById(id);
         await this.productsRepository.remove(product);
     }
@@ -81,7 +81,7 @@ export class ProductsService {
         return this.categoriesRepository.find({ relations: ['products'] });
     }
 
-    async findCategoryById(id: number): Promise<Category> {
+    async findCategoryById(id: string): Promise<Category> {
         const category = await this.categoriesRepository.findOne({
             where: { id },
             relations: ['products'],
@@ -93,13 +93,13 @@ export class ProductsService {
 
         return category;
     }
-    async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+    async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
         const category = await this.findCategoryById(id);
         Object.assign(category, updateCategoryDto);
         return this.categoriesRepository.save(category);
     }
 
-    async removeCategory(id: number): Promise<void> {
+    async removeCategory(id: string): Promise<void> {
         const category = await this.findCategoryById(id);
         await this.categoriesRepository.remove(category);
     }

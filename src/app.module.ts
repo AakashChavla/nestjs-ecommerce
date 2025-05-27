@@ -13,7 +13,7 @@ import { OrdersModule } from './orders/orders.module';
       host: process.env.DB_HOST || 'localhost',
       port: 5432,
       username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || '1234',
+      password: process.env.DB_PASSWORD || 'visaj',
       database: process.env.DB_NAME || 'ecommerce',
       synchronize: true,
       autoLoadEntities: true,
@@ -22,7 +22,6 @@ import { OrdersModule } from './orders/orders.module';
     AuthModule,
     ProductsModule,
     OrdersModule,
-  ]
+  ],
 })
-
-export class AppModule { }
+export class AppModule {}

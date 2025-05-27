@@ -1,35 +1,44 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import * as bcrypt from 'bcrypt'
-import { JwtService } from '@nestjs/jwt'
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private usersService: UsersService,
-        private jwtService: JwtService,
-    ){}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-    async validateUser(email: string, pass: string): Promise<any>{
-        const user = await this.usersService.findOneByEmail(email);
-        if(user && await bcrypt.compare(pass, user.password)){
-            const { password, ...result } = user;
-            return result;
-        }
-        return null;
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.usersService.findOneByEmail(email);
+    if (user && (await bcrypt.compare(pass, user.password))) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
+  async login(email: string, password: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid email or password');
     }
 
-    async login(email: string, password: string){
-        const user = await this.validateUser(email, password);
-        if(!user){
-            throw new UnauthorizedException();
-        }
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.jwtService.sign(payload);
 
-        const payload = {email: user.email, sub: user.id, role: user.role};
-        return{
-            access_token: this.jwtService.sign(payload),
-        }
+    const { password: _, ...userWithoutPassword } = user;
 
-    }
-
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Login successful',
+      data: {
+        access_token: token,
+        user: userWithoutPassword,
+      },
+    };
+  }
 }

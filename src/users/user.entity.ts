@@ -3,21 +3,27 @@ import { Order } from '../orders/order.entity'; // Adjust path if needed
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: number;
 
-    @Column({ unique: true })
-    email: string;
+  @Column()
+  name: string;
 
-    @Column()
-    password: string;
+  @Column({ unique: true })
+  email: string;
 
-    @Column()
-    role: string;
+  @Column()
+  password: string;
 
-    @Column({default: ''})
-    profile: string;
+  @Column()
+  role: string;
 
-    @OneToMany(() => Order, order => order.user)
-    orders: Order[];
+  @Column({ default: '' })
+  profile: string;
+
+  @Column({ default: '' })
+  token: string;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 }

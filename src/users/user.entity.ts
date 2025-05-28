@@ -5,6 +5,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Order } from '../orders/order.entity';
+import { Exclude } from 'class-transformer';
+
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -23,9 +25,11 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Exclude()
   @Column()
   password: string;
 
+  @Exclude()
   @Column({
     type: 'enum',
     enum: UserRole,
@@ -36,6 +40,7 @@ export class User {
   @Column({ nullable: true })
   profile: string;
 
+  @Exclude()
   @Column({ type: 'text', nullable: true })
   token: string | null;
 

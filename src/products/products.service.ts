@@ -3,22 +3,28 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
 import { Category } from './category.entity';
+import { User } from '../users/user.entity'
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CommonResponse } from '../template/response';
+// import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class ProductsService {
     constructor(
         @InjectRepository(Product)
         private productsRepository: Repository<Product>,
+
         @InjectRepository(Category)
         private categoriesRepository: Repository<Category>,
+
+        @InjectRepository(User)
+        private userRepository: Repository<User>
     ) { }
 
-    async createProduct(id: string, createProductDto: CreateProductDto): Promise<CommonResponse> {
+    async createProduct(userId: string, createProductDto: CreateProductDto): Promise<CommonResponse> {
         try {
             const { categoryId, ...rest } = createProductDto;
 
@@ -33,61 +39,132 @@ export class ProductsService {
                 }
             }
 
-            const product = this.productsRepository.create({ ...rest, category });
+            const product = this.productsRepository.create({ ...createProductDto, userId });
             await this.productsRepository.save(product);
+            // const user = await this.userRepository.findOne({
+            //     where: { id: userId }
+            // });
+
+
+            // const responseData = instanceToPlain({
+            //     ...createProductDto,
+            //     category,
+            //     user
+            // });
+
             return {
                 status: HttpStatus.CREATED,
                 message: "Product Created Successfully",
                 data: product
             }
         } catch (error) {
-            return{
+            return {
                 status: HttpStatus.INTERNAL_SERVER_ERROR,
                 message: "error during creating new product",
                 data: error.message
             }
-         }
-
-    }
-
-
-    async findAllProducts(): Promise<Product[]> {
-        return this.productsRepository.find({ relations: ['category'] });
-    }
-
-    async findProductById(id: string): Promise<Product> {
-        const product = await this.productsRepository.findOne({
-            where: { id },
-            relations: ['category'],
-        });
-
-        if (!product) {
-            throw new NotFoundException('Product not found');
         }
 
-        return product;
     }
 
 
-    async updateProduct(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
-        const product = await this.findProductById(id);
-        const { categoryId, ...rest } = updateProductDto;
-        if (categoryId) {
-            const category = await this.categoriesRepository.findOne({
-                where: { id: categoryId },
-            });
-            if (!category) {
-                throw new NotFoundException('Category not found');
+    async findAllProducts(): Promise<CommonResponse> {
+        try {
+            const data = await this.productsRepository.find({ relations: ['category'] });
+            if (!data) {
+                return {
+                    status: HttpStatus.NOT_FOUND,
+                    message: "product data not found",
+                }
             }
-            product.category = category;
+            return {
+                status: HttpStatus.OK,
+                message: "product viewed successfull",
+                data: data
+            }
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "error during get all product",
+                error: error.message
+            }
         }
-        Object.assign(product, rest);
-        return this.productsRepository.save(product);
+
+    }
+
+    async findProductById(id: string): Promise<CommonResponse> {
+        try {
+            const product = await this.productsRepository.findOne({
+                where: { id },
+                relations: ['category'],
+            });
+
+            if (!product) {
+                return {
+                    status: HttpStatus.NOT_FOUND,
+                    message: "A Product with specific id not available"
+                }
+            }
+
+            return {
+                status: HttpStatus.OK,
+                message: "product with id viewed Successfull",
+                data: product,
+            };
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "error during product with id",
+                error: error.message
+            };
+        }
+
+    }
+
+
+    async updateProduct(userId: string, id: string, updateProductDto: UpdateProductDto): Promise<CommonResponse> {
+        try {
+            const product = await this.findProductById(id);
+            const { categoryId, ...rest } = updateProductDto;
+            if(userId !== product.data.userId){
+                return{
+                    status: HttpStatus.UNAUTHORIZED,
+                    message: "you have not added is product you are unauthorized"
+                }
+            }
+            if (categoryId) {
+                const category = await this.categoriesRepository.findOne({
+                    where: { id: categoryId },
+                });
+                if (!category) {
+                    return {
+                        status: HttpStatus.NOT_FOUND,
+                        message: "category not found"
+                    }
+                }
+                product.data.category = category;
+            }
+
+            Object.assign(product.data, rest);
+            const data = await this.productsRepository.save(product.data);
+            return {
+                status: HttpStatus.OK,
+                message: "product updated successfull",
+                data: data
+            }
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "error product updated",
+                error: error.message
+            }
+        }
+
     }
 
     async removeProduct(id: string): Promise<void> {
         const product = await this.findProductById(id);
-        await this.productsRepository.remove(product);
+        await this.productsRepository.remove(product.data);
     }
 
     async createCategory(createCategoryDto: CreateCategoryDto): Promise<CommonResponse> {

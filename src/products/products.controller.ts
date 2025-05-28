@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete, UseGuards, Req, UnauthorizedException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, UseGuards, Req, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -54,9 +54,16 @@ export class ProductsController {
         return this.productsService.findProductById(id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch(':id')
-    updateProduct(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-        return this.productsService.updateProduct(id, updateProductDto);
+    updateProduct(
+        @Req() req: Request,
+        @Param('id') id: string, @Body() updateProductDto: UpdateProductDto): Promise<CommonResponse> {
+        if (!req.user) {
+            throw new UnauthorizedException('User not found in request');
+        }
+        const userId = req.user.id;
+        return this.productsService.updateProduct(userId ,id, updateProductDto);
     }
 
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
@@ -7,6 +7,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CommonResponse } from '../template/response';
 
 @Injectable()
 export class ProductsService {
@@ -17,19 +18,36 @@ export class ProductsService {
         private categoriesRepository: Repository<Category>,
     ) { }
 
-    async createProduct(createProductDto: CreateProductDto): Promise<Product> {
-        const { categoryId, ...rest } = createProductDto;
+    async createProduct(id: string, createProductDto: CreateProductDto): Promise<CommonResponse> {
+        try {
+            const { categoryId, ...rest } = createProductDto;
 
-        const category = await this.categoriesRepository.findOne({
-            where: { id: categoryId },
-        });
+            const category = await this.categoriesRepository.findOne({
+                where: { id: categoryId },
+            });
 
-        if (!category) {
-            throw new NotFoundException('Category not found');
-        }
+            if (!category) {
+                return {
+                    status: HttpStatus.NOT_FOUND,
+                    message: "category not found"
+                }
+            }
 
-        const product = this.productsRepository.create({ ...rest, category });
-        return this.productsRepository.save(product);
+            const product = this.productsRepository.create({ ...rest, category });
+            await this.productsRepository.save(product);
+            return {
+                status: HttpStatus.CREATED,
+                message: "Product Created Successfully",
+                data: product
+            }
+        } catch (error) {
+            return{
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "error during creating new product",
+                data: error.message
+            }
+         }
+
     }
 
 
@@ -72,9 +90,40 @@ export class ProductsService {
         await this.productsRepository.remove(product);
     }
 
-    async createCategory(createCategoryDto: CreateCategoryDto): Promise<Category> {
-        const category = this.categoriesRepository.create(createCategoryDto);
-        return this.categoriesRepository.save(category);
+    async createCategory(createCategoryDto: CreateCategoryDto): Promise<CommonResponse> {
+        try {
+            // Capitalize each word directly inline
+            createCategoryDto.name = createCategoryDto.name
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+
+            const existingCategory = await this.categoriesRepository.findOne({
+                where: { name: createCategoryDto.name },
+            });
+
+            if (existingCategory) {
+                return {
+                    status: HttpStatus.CONFLICT,
+                    message: 'Category already exists',
+                };
+            }
+
+            const category = this.categoriesRepository.create(createCategoryDto);
+            await this.categoriesRepository.save(category);
+
+            return {
+                status: HttpStatus.CREATED,
+                message: 'Category created successfully',
+                data: category,
+            };
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Error during creating the categories',
+                data: error,
+            };
+        }
     }
 
     async findAllCategories(): Promise<Category[]> {

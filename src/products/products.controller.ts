@@ -1,9 +1,12 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, UseGuards, Req, UnauthorizedException, HttpStatus } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
+import { Request } from 'express';
+import { CommonResponse } from '../template/response';
 
 
 
@@ -11,10 +14,35 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) { }
 
+    @UseGuards(JwtAuthGuard)
+
+    // create Product : 
+    @UseGuards(JwtAuthGuard)
     @Post()
-    createProduct(@Body() createProductDto: CreateProductDto) {
-        return this.productsService.createProduct(createProductDto);
+    async createProduct(
+        @Req() req: Request & { user?: { id?: string; role?: string } },
+        @Body() createProductDto: CreateProductDto
+    ): Promise<CommonResponse> {
+        const id = req.user?.id;
+
+        if (!id) {
+            return {
+                status: HttpStatus.UNAUTHORIZED,
+                message: 'Token is required',
+            };
+        }
+
+        if (req.user?.role !== 'admin') {
+            return {
+                status: HttpStatus.UNAUTHORIZED,
+                message: 'You are not authorized to create products',
+            };
+        }
+
+        // Proceed with product creation
+        return this.productsService.createProduct(id, createProductDto);
     }
+
 
     @Get()
     findAllProducts() {
@@ -31,11 +59,32 @@ export class ProductsController {
         return this.productsService.updateProduct(id, updateProductDto);
     }
 
+
+    //create categories : done
+    @UseGuards(JwtAuthGuard)
     @Post('categories')
-    createCategory(@Body() createCategoryDto: CreateCategoryDto) {
+    async createCategory(
+        @Req() req: Request & { user?: { id?: string; role?: string } },
+        @Body() createCategoryDto: CreateCategoryDto,
+    ): Promise<CommonResponse> {
+        const id = req.user?.id;
+        if (!id) {
+            return {
+                status: HttpStatus.UNAUTHORIZED,
+                message: 'Token is required',
+            };
+        }
+        if (req.user?.role !== 'admin') {
+            return {
+                status: HttpStatus.UNAUTHORIZED,
+                message: 'You are not authorized to create categories',
+            };
+        }
         return this.productsService.createCategory(createCategoryDto);
     }
 
+
+    @UseGuards(JwtAuthGuard)
     @Get('categories')
     findAllCategories() {
         return this.productsService.findAllCategories();

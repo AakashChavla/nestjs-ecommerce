@@ -56,7 +56,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('update/:id')
+  @Patch('update')
   @UseInterceptors(
     FileInterceptor('profile', {
       storage: diskStorage({
@@ -75,11 +75,11 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @Req() req: any,
 ) {
-    if (!req.user || req.user.id !== id) {
+    if (!req.user || !req.user.id) {
       throw new UnauthorizedException('Unauthorized to update this user');
     }
     
-    return this.usersService.update(id, updateUserDto, file?.filename);
+    return this.usersService.update(req.user.id, updateUserDto, file?.filename);
   }
 
   @UseGuards(JwtAuthGuard)

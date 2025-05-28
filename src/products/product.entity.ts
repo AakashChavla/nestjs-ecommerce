@@ -1,27 +1,45 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
-import {Category} from './category.entity';
-import { UUID } from "typeorm/driver/mongodb/bson.typings";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Category } from './category.entity';
+import { User } from '../users/user.entity'; // If you're associating products with users
 
 @Entity()
-export class Product{
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+export class Product {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    name: string
+  @Column()
+  name: string;
 
-    @Column('text')
-    description: string;
+  @Column('text')
+  description: string;
 
-    @Column('decimal')
-    price: number;
+  @Column('decimal', { precision: 10, scale: 2 })
+  price: number;
 
-    @Column()
-    sku: string;
+  @Column()
+  sku: string;
 
-    @Column()
-    quantity: number;
+  @Column()
+  quantity: number;
 
-    @ManyToOne(()=> Category, category => category.products)
-    category: Category;
+  // Optional: link to user who created the product
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @Column({ nullable: true })
+  userId: string;
+
+  @ManyToOne(() => Category, (category) => category.products, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'categoryId' })
+  category: Category;
+
+  @Column({ nullable: true })
+  categoryId: string;
 }

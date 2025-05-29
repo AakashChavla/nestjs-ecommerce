@@ -3,10 +3,12 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
+  OneToMany, 
   JoinColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
-import { User } from '../users/user.entity'; // If you're associating products with users
+import { User } from '../users/user.entity';
+import { CartItem } from '../cart/entities/cartItem.entity'; 
 
 @Entity()
 export class Product {
@@ -42,4 +44,8 @@ export class Product {
 
   @Column({ nullable: true })
   categoryId: string;
+
+  
+  @OneToMany(() => CartItem, (cartItem) => cartItem.product)
+  cartItems: CartItem[];
 }

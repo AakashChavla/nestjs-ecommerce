@@ -126,8 +126,8 @@ export class ProductsService {
         try {
             const product = await this.findProductById(id);
             const { categoryId, ...rest } = updateProductDto;
-            if(userId !== product.data.userId){
-                return{
+            if (userId !== product.data.userId) {
+                return {
                     status: HttpStatus.UNAUTHORIZED,
                     message: "you have not added is product you are unauthorized"
                 }
@@ -203,30 +203,95 @@ export class ProductsService {
         }
     }
 
-    async findAllCategories(): Promise<Category[]> {
-        return this.categoriesRepository.find({ relations: ['products'] });
-    }
-
-    async findCategoryById(id: string): Promise<Category> {
-        const category = await this.categoriesRepository.findOne({
-            where: { id },
-            relations: ['products'],
-        });
-
-        if (!category) {
-            throw new NotFoundException('Category not found');
+    async findAllCategories(): Promise<CommonResponse> {
+        try {
+            const productsCategoryVise = await this.categoriesRepository.find({ relations: ['products'] });
+            if (!productsCategoryVise) {
+                return {
+                    status: HttpStatus.NOT_FOUND,
+                    message: "No categories found",
+                };
+            }
+            return {
+                status: HttpStatus.OK,
+                message: "Categories viewed successfully",
+                data: productsCategoryVise,
+            }
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "Error during fetching categories",
+                error: error.message,
+            };
         }
-
-        return category;
-    }
-    async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
-        const category = await this.findCategoryById(id);
-        Object.assign(category, updateCategoryDto);
-        return this.categoriesRepository.save(category);
     }
 
-    async removeCategory(id: string): Promise<void> {
-        const category = await this.findCategoryById(id);
-        await this.categoriesRepository.remove(category);
+    async findCategoryById(id: string): Promise<CommonResponse> {
+        try {
+
+            const category = await this.categoriesRepository.findOne({
+                where: { id },
+                relations: ['products'],
+            });
+
+            if (!category) {
+                return {
+                    status: HttpStatus.NOT_FOUND,
+                    message: "Category with this id not found",
+                }
+            }
+
+            return {
+                status: HttpStatus.OK,
+                message: "Category with id viewed successfully",
+                data: category,
+            };
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "Error during fetching category by id",
+                error: error.message,
+            };
+        }
+    }
+    async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto): Promise<CommonResponse> {
+        try {
+            const categoryResponse = await this.findCategoryById(id);
+            const category = categoryResponse.data;
+            Object.assign(category, updateCategoryDto);
+            const data = await this.categoriesRepository.save(category);
+            return {
+                status: HttpStatus.OK,
+                message: "Category updated successfully",
+                data: data,
+            };
+
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "Error during updating category",
+                error: error.message,
+            };
+        }
+    }
+
+    async removeCategory(id: string): Promise<CommonResponse> {
+        try {
+
+            const categoryResponse = await this.findCategoryById(id);
+            const category = categoryResponse.data;
+            const deletedCategories = await this.categoriesRepository.remove(category);
+            return {
+                status: HttpStatus.OK,
+                message: "Category deleted successfully",
+                data: deletedCategories,
+            }
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: "Error during deleting category",
+                error: error.message,
+            };
+        }
     }
 }

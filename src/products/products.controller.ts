@@ -49,7 +49,7 @@ export class ProductsController {
         return this.productsService.findAllProducts();
     }
 
-    @Get(':id')
+    @Get('prod/:id')
     findProductById(@Param('id') id: string) {
         return this.productsService.findProductById(id);
     }
@@ -63,7 +63,7 @@ export class ProductsController {
             throw new UnauthorizedException('User not found in request');
         }
         const userId = req.user.id;
-        return this.productsService.updateProduct(userId ,id, updateProductDto);
+        return this.productsService.updateProduct(userId, id, updateProductDto);
     }
 
 
@@ -90,8 +90,6 @@ export class ProductsController {
         return this.productsService.createCategory(createCategoryDto);
     }
 
-
-    @UseGuards(JwtAuthGuard)
     @Get('categories')
     findAllCategories() {
         return this.productsService.findAllCategories();
@@ -102,11 +100,15 @@ export class ProductsController {
         return this.productsService.findCategoryById(id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch('categories/:id')
-    updateCategory(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+    updateCategory(
+        @Param('id') id: string,
+        @Body() updateCategoryDto: UpdateCategoryDto) {
         return this.productsService.updateCategory(id, updateCategoryDto);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete('categories/:id')
     removeCategory(@Param('id') id: string) {
         return this.productsService.removeCategory(id);

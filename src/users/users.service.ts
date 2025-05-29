@@ -136,6 +136,12 @@ async update(
     await this.usersRepository.update(id, { token });
   }
 
+  async findOneById(id: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
+
+
+
   async DeleteUser(id: string, deleteUserId: string): Promise<{ status: number; message: string; error?: string, targetUser?: User }> {
     try {
       const user = await this.usersRepository.findOne({ where: { id } });

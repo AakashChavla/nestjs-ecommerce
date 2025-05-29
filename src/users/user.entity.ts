@@ -4,7 +4,7 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
 } from 'typeorm';
-import { Order } from '../orders/order.entity';
+import { Order } from '../orders/entities/order.entity';
 import { Exclude } from 'class-transformer';
 
 

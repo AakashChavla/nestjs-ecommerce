@@ -20,8 +20,6 @@ export class ProductsService {
         @InjectRepository(Category)
         private categoriesRepository: Repository<Category>,
 
-        @InjectRepository(User)
-        private userRepository: Repository<User>
     ) { }
 
     async createProduct(userId: string, createProductDto: CreateProductDto): Promise<CommonResponse> {

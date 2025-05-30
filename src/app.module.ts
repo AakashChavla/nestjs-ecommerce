@@ -6,6 +6,8 @@ import { User } from './users/user.entity';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { CartModule } from './cart/cart.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -25,5 +27,7 @@ import { CartModule } from './cart/cart.module';
     OrdersModule,
     CartModule,
   ],
+  controllers: [AppController],
+  providers: [AppService], 
 })
 export class AppModule {}

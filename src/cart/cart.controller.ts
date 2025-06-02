@@ -63,8 +63,16 @@ export class CartController {
         return this.cartService.removeItem(req.user.id, itemId);
     }
 
-    @
+    @UseGuards(JwtAuthGuard)
     @Post('checkout')
+    chekcoutcart(
+        @Req() req: Request & { user?: { id?: string; } }
+    ){
+        if (!req.user || !req.user.id) {
+            throw new UnauthorizedException('User not found');
+        }
+        return this.cartService.checkout(req.user.id);
+    }
 
 
 }

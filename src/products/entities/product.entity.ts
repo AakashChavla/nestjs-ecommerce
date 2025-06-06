@@ -3,12 +3,13 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
-  OneToMany, 
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
-import { User } from '../users/user.entity';
-import { CartItem } from '../cart/entities/cartItem.entity'; 
+import { User } from '../../users/entities/user.entity';
+import { CartItem } from '../../cart/entities/cartItem.entity';
+import { Review } from '../../reviews/entities/review.entity';
 
 @Entity()
 export class Product {
@@ -45,7 +46,12 @@ export class Product {
   @Column({ nullable: true })
   categoryId: string;
 
-  
+
   @OneToMany(() => CartItem, (cartItem) => cartItem.product)
   cartItems: CartItem[];
+
+  @OneToMany(() => Review, review => review.product)
+  reviews: Review[];
+
+
 }

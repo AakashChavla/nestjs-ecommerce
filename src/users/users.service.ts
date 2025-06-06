@@ -1,11 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
-import { CreateUserDto } from './create-user.dto';
+import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from './update-user.dto';
-import { UserRole } from './user.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from './entities/user.entity';
 import { CommonResponse } from '../template/response';
 
 

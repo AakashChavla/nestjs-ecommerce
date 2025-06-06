@@ -8,9 +8,9 @@ import { CreateOrderDto } from './dto/createOrder.dto';
 import { UsersService } from '../users/users.service';
 import { ProductsService } from '../products/products.service';
 import { CommonResponse } from '../template/response';
-import { Product } from '../products/product.entity';
+import { Product } from '../products/entities/product.entity';
 import { UpdateOrderStatusDto } from './dto/updateOrderStatus.dto';
-import { User } from '../users/user.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class OrdersService {

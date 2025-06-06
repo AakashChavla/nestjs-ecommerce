@@ -14,11 +14,11 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
-import { CreateUserDto } from './create-user.dto';
-import { UpdateUserDto } from './update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
-import { User } from './user.entity';
+import { User } from './entities/user.entity';
 import { UnauthorizedException } from '@nestjs/common/exceptions/unauthorized.exception';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';

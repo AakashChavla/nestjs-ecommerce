@@ -8,7 +8,7 @@ import {
   Unique,
 } from 'typeorm';
 import { Cart } from './cart.entity';
-import { Product } from '../../products/product.entity';
+import { Product } from '../../products/entities/product.entity';
 
 @Entity()
 @Unique(['cart', 'product']) // Prevent duplicate items in a cart

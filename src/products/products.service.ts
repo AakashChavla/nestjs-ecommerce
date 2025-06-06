@@ -1,9 +1,9 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from './product.entity';
-import { Category } from './category.entity';
-import { User } from '../users/user.entity'
+import { Product } from './entities/product.entity';
+import { Category } from './entities/category.entity';
+import { User } from '../users/entities/user.entity'
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';

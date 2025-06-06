@@ -6,7 +6,7 @@ import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 import { UsersModule } from '../users/users.module';
 import { ProductsModule } from '../products/products.module';
-import { Product } from '../products/product.entity'; 
+import { Product } from '../products/entities/product.entity'; 
 
 @Module({
   imports: [

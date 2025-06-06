@@ -4,10 +4,10 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
 } from 'typeorm';
-import { Order } from '../orders/entities/order.entity';
-import { Cart } from '../cart/entities/cart.entity'; // ✅ Added import
+import { Order } from '../../orders/entities/order.entity';
+import { Cart } from '../../cart/entities/cart.entity'; // ✅ Added import
 import { Exclude } from 'class-transformer';
-
+import { Review } from '../../reviews/entities/review.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -48,7 +48,10 @@ export class User {
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
 
-  // ✅ Added to support Cart - reverse relation from User to Cart
   @OneToMany(() => Cart, (cart) => cart.user)
   carts: Cart[];
+
+  @OneToMany(() => Review, review => review.user)
+  reviews: Review[];
+
 }

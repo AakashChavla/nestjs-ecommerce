@@ -40,7 +40,6 @@ export class AuthService {
                 message: 'Login successful',
                 data: {
                     access_token: token,
-                    user: userWithoutPassword,
                 },
             };
         } catch (error) { 

@@ -8,6 +8,7 @@ import { Order } from '../../orders/entities/order.entity';
 import { Cart } from '../../cart/entities/cart.entity'; // ✅ Added import
 import { Exclude } from 'class-transformer';
 import { Review } from '../../reviews/entities/review.entity';
+import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -53,5 +54,8 @@ export class User {
 
   @OneToMany(() => Review, review => review.user)
   reviews: Review[];
+
+  @OneToMany(() => Wishlist, wishlist => wishlist.user)
+  wishlist: Wishlist[];
 
 }

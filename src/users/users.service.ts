@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from './entities/user.entity';
 import { CommonResponse } from '../template/response';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 
 @Injectable()
@@ -14,40 +15,115 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });
   }
 
+  // async create(createUserDto: CreateUserDto): Promise<CommonResponse> {
+  //   try {
+  //     const { name, email, password, role } = createUserDto;
+
+  //     // Check if email already exists
+  //     const existingUser = await this.usersRepository.findOne({ where: { email } });
+  //     if (existingUser) {
+  //       return {
+  //         status: HttpStatus.CONFLICT,
+  //         message: 'Email is already registered',
+  //       };
+  //     }
+
+  //     const hashedPassword = await bcrypt.hash(password, 10);
+
+  //     const user = this.usersRepository.create({
+  //       name,
+  //       email,
+  //       password: hashedPassword,
+  //       role: role as UserRole,
+  //     });
+
+  //     const savedUser = await this.usersRepository.save(user);
+
+  //     return {
+  //       status: HttpStatus.CREATED,
+  //       message: 'User registered successfully',
+  //       data: savedUser,
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //       message: 'Error registering user',
+  //       error: error.message,
+  //     };
+  //   }
+  // }
+
   async create(createUserDto: CreateUserDto): Promise<CommonResponse> {
     try {
-      const { name, email, password, role } = createUserDto;
+      const { name, email, password, role, mobileNo } = createUserDto;
 
       // Check if email already exists
       const existingUser = await this.usersRepository.findOne({ where: { email } });
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpSentAt = new Date();
+
       if (existingUser) {
-        return {
-          status: HttpStatus.CONFLICT,
-          message: 'Email is already registered',
-        };
+        if (existingUser.isVerified) {
+          return {
+            status: HttpStatus.CONFLICT,
+            message: 'Email is already registered',
+          };
+        } else {
+          // Update existing unverified user
+          existingUser.name = name;
+          existingUser.password = hashedPassword;
+          existingUser.role = role as UserRole;
+          existingUser.otp = otp;
+          existingUser.otpSentAt = otpSentAt;
+          existingUser.mobileNo = mobileNo ?? '';
+
+          const savedUser = await this.usersRepository.save(existingUser);
+          await this.notificationsService.sendOtp(email, otp);
+
+          // Hide sensitive fields
+          const { password: _password, otp: _otp, otpSentAt: _otpSentAt, role: _role, token, ...safeUser } = savedUser;
+
+          return {
+            status: HttpStatus.OK,
+            message: 'OTP resent. Please verify your email.',
+            data: safeUser,
+          };
+        }
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-
+      // Create new user if not exists
       const user = this.usersRepository.create({
         name,
         email,
         password: hashedPassword,
         role: role as UserRole,
+        otp,
+        otpSentAt,
+        isVerified: false,
+        mobileNo: mobileNo ?? '',
       });
 
       const savedUser = await this.usersRepository.save(user);
 
+      // Send OTP mail
+      await this.notificationsService.sendOtp(email, otp);
+
+      // Hide sensitive fields
+      const { password: _password, otp: _otp, otpSentAt: _otpSentAt, role: _role, token, ...safeUser } = savedUser;
+
       return {
         status: HttpStatus.CREATED,
-        message: 'User registered successfully',
-        data: savedUser,
+        message: 'User registered successfully. OTP sent to email.',
+        data: safeUser,
       };
     } catch (error) {
       return {
@@ -62,69 +138,69 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-async update(
-  id: string,
-  updateUserDto: UpdateUserDto,
-  profileFilename?: string,
-): Promise<CommonResponse> {
-  try {
-    // Make a shallow copy, but exclude 'role' for now
-    const { role, ...rest } = updateUserDto;
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    profileFilename?: string,
+  ): Promise<CommonResponse> {
+    try {
+      // Make a shallow copy, but exclude 'role' for now
+      const { role, ...rest } = updateUserDto;
 
-    const updateData: Partial<User> = { ...rest };
+      const updateData: Partial<User> = { ...rest };
 
-    if (profileFilename) {
-      updateData.profile = profileFilename;
-    }
+      if (profileFilename) {
+        updateData.profile = profileFilename;
+      }
 
-    if (role) {
+      if (role) {
 
-      const roleKey = role.toUpperCase() as keyof typeof UserRole;
-      if (UserRole[roleKey]) {
-        updateData.role = UserRole[roleKey];
-      } else {
+        const roleKey = role.toUpperCase() as keyof typeof UserRole;
+        if (UserRole[roleKey]) {
+          updateData.role = UserRole[roleKey];
+        } else {
+          return {
+            status: HttpStatus.BAD_REQUEST,
+            message: 'Invalid role value',
+          };
+        }
+      }
+
+      // Email uniqueness check if email is present
+      if (updateData.email) {
+        const existingUser = await this.usersRepository.findOne({ where: { email: updateData.email } });
+        if (existingUser && existingUser.id !== id) {
+          return {
+            status: HttpStatus.CONFLICT,
+            message: 'Email is already in use by another user',
+          };
+        }
+      }
+
+      const updateResult = await this.usersRepository.update(id, updateData);
+
+      if (updateResult.affected === 0) {
         return {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Invalid role value',
+          status: HttpStatus.NOT_FOUND,
+          message: 'User not found',
         };
       }
-    }
 
-    // Email uniqueness check if email is present
-    if (updateData.email) {
-      const existingUser = await this.usersRepository.findOne({ where: { email: updateData.email } });
-      if (existingUser && existingUser.id !== id) {
-        return {
-          status: HttpStatus.CONFLICT,
-          message: 'Email is already in use by another user',
-        };
-      }
-    }
+      const updatedUser = await this.usersRepository.findOne({ where: { id } });
 
-    const updateResult = await this.usersRepository.update(id, updateData);
-
-    if (updateResult.affected === 0) {
       return {
-        status: HttpStatus.NOT_FOUND,
-        message: 'User not found',
+        status: HttpStatus.OK,
+        message: 'User updated successfully',
+        data: updatedUser,
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error updating user',
+        error: error.message,
       };
     }
-
-    const updatedUser = await this.usersRepository.findOne({ where: { id } });
-
-    return {
-      status: HttpStatus.OK,
-      message: 'User updated successfully',
-      data: updatedUser,
-    };
-  } catch (error) {
-    return {
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Error updating user',
-      error: error.message,
-    };
   }
-}
 
 
 
@@ -171,6 +247,56 @@ async update(
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         message: 'Error deleting user',
+        error: error.message,
+      };
+    }
+  }
+
+  async verifyOtp(userId: string, otp: string): Promise<CommonResponse> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      if (!user || !user.otp || !user.otpSentAt) {
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'OTP not found or not sent',
+        };
+      }
+
+      // Check OTP expiry (5 minutes)
+      const now = new Date();
+      const sentAt = new Date(user.otpSentAt);
+      const diffMs = now.getTime() - sentAt.getTime();
+      const diffMinutes = diffMs / (1000 * 60);
+
+      if (diffMinutes > 5) {
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'OTP expired',
+        };
+      }
+
+      // Check OTP match
+      if (user.otp !== otp) {
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Invalid OTP',
+        };
+      }
+
+      // Mark user as verified and clear OTP fields
+      user.isVerified = true;
+      user.otp = null;
+      user.otpSentAt = null;
+      await this.usersRepository.save(user);
+
+      return {
+        status: HttpStatus.OK,
+        message: 'OTP verified and user is now verified.',
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error verifying OTP',
         error: error.message,
       };
     }

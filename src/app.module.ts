@@ -10,6 +10,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ReviewsModule } from './reviews/reviews.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     CartModule,
     ReviewsModule,
     WishlistModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService], 

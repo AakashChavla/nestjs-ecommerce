@@ -9,7 +9,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CommonResponse } from '../template/response';
-// import { instanceToPlain } from 'class-transformer';
+import { FilterProductDto } from './dto/filter-product.dto'
 
 @Injectable()
 export class ProductsService {
@@ -292,4 +292,81 @@ export class ProductsService {
             };
         }
     }
+
+    async searchProducts(query: string): Promise<CommonResponse> {
+        try {
+            if (!query || query.trim().length < 2) {
+                return {
+                    status: HttpStatus.BAD_REQUEST,
+                    message: 'Search query must be at least 2 characters long',
+                };
+            }
+
+            const searchData = await this.productsRepository.createQueryBuilder('product')
+                .where('LOWER(product.name) LIKE LOWER(:query)', { query: `%${query}%` })
+                .orWhere('LOWER(product.description) LIKE LOWER(:query)', { query: `%${query}%` })
+                .getMany();
+
+            if (searchData.length === 0) {
+                return {
+                    status: HttpStatus.NOT_FOUND,
+                    message: 'No products found matching your search',
+                };
+            }
+
+            return {
+                status: HttpStatus.OK,
+                message: 'Searched Data',
+                data: searchData
+            };
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Error during searching the product',
+                error: error.message
+            };
+        }
+    }
+
+    async filterProducts(filterProductDto: FilterProductDto): Promise<CommonResponse> {
+        try {
+            const { categoryId, minPrice, maxPrice, minRating } = filterProductDto;
+            let queryBuilder = this.productsRepository.createQueryBuilder('product').leftJoinAndSelect('product.category', 'category');
+
+            if (categoryId) {
+                queryBuilder = queryBuilder.andWhere('category.id = :categoryId', { categoryId });
+            }
+            if (minPrice !== undefined) {
+                queryBuilder = queryBuilder.andWhere('product.price >= :minPrice', { minPrice });
+            }
+            if (maxPrice !== undefined) {
+                queryBuilder = queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice });
+            }
+            if (minRating !== undefined) {
+                queryBuilder = queryBuilder.andWhere('product.rating >= :minRating', { minRating });
+            }
+
+            const products = await queryBuilder.getMany();
+
+            if (products.length === 0) {
+                return {
+                    status: HttpStatus.NOT_FOUND,
+                    message: 'No products found matching the filter criteria',
+                };
+            }
+
+            return {
+                status: HttpStatus.OK,
+                message: 'Filtered products fetched successfully',
+                data: products,
+            };
+        } catch (error) {
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Error during filtering products',
+                error: error.message,
+            };
+        }
+    }
+
 }

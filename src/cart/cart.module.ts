@@ -10,13 +10,15 @@ import { OrdersModule } from 'src/orders/orders.module';
 import { OrdersService } from 'src/orders/orders.service';
 import { UsersService } from 'src/users/users.service';
 import { ProductsService } from 'src/products/products.service';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Cart, CartItem]),
     UsersModule,
     ProductsModule,
-    OrdersModule
+    OrdersModule,
+    NotificationsModule
 
   ],
   providers: [CartService, UsersService],

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete, UseGuards, Req, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, UseGuards, Req, HttpStatus, UnauthorizedException, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -7,6 +7,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { Request } from 'express';
 import { CommonResponse } from '../template/response';
+import { FilterProductDto } from './dto/filter-product.dto';
 
 
 
@@ -113,4 +114,15 @@ export class ProductsController {
     removeCategory(@Param('id') id: string) {
         return this.productsService.removeCategory(id);
     }
+
+    @Get('search')
+    searchProducts(@Query('query') query: string) {
+        return this.productsService.searchProducts(query);
+    }
+
+    @Get('filter')
+    filterProducts(@Query() filterProductDto: FilterProductDto) {
+        return this.productsService.filterProducts(filterProductDto);
+    }
+
 }

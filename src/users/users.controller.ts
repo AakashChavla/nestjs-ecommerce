@@ -37,7 +37,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
-  ) {}
+  ) { }
 
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
@@ -74,11 +74,11 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
     @Body() updateUserDto: UpdateUserDto,
     @Req() req: any,
-) {
+  ) {
     if (!req.user || !req.user.id) {
       throw new UnauthorizedException('Unauthorized to update this user');
     }
-    
+
     return this.usersService.update(req.user.id, updateUserDto, file?.filename);
   }
 
@@ -101,6 +101,14 @@ export class UsersController {
     if (!req.user) {
       throw new UnauthorizedException('Unauthorized to delete this user');
     }
-    return this.usersService.DeleteUser( req.user.id , id);
+    return this.usersService.DeleteUser(req.user.id, id);
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(
+    @Body('userId') userId: string,
+    @Body('otp') otp: string,
+  ) {
+    return this.usersService.verifyOtp(userId, otp);
   }
 }

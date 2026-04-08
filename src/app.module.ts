@@ -12,8 +12,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { GModule } from './module/g/g.module';
-import { ModuleModule } from './module/user/module/module.module';
 import { UserModule } from './module/user/user.module';
 
 @Module({
@@ -52,11 +50,6 @@ import { UserModule } from './module/user/user.module';
     }),
 
     CommonModule,
-
-    GModule,
-
-    ModuleModule,
-
     UserModule,
   ],
   controllers: [AppController],

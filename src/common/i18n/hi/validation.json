@@ -1,0 +1,7 @@
+{
+  "is_required": "{field} आवश्यक है",
+  "min_character": "{field} में कम से कम {count} अक्षर होने चाहिए",
+  "max_character": "{field} में अधिकतम {count} अक्षर हो सकते हैं",
+  "invalid": "अमान्य {field}",
+  "password_strength": "{field} में कम से कम 8 अक्षर होने चाहिए, जिनमें बड़े अक्षर, छोटे अक्षर, अंक और विशेष वर्ण शामिल हों"
+}

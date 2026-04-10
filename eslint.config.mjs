@@ -6,7 +6,7 @@ import prettierPlugin from 'eslint-plugin-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '.env', 'prisma/generated/**'],
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '.env', 'src/generated/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

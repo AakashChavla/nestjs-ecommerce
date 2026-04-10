@@ -11,3 +11,7 @@ export * from './filters/http-exception.filter';
 
 // Interceptors
 export * from './interceptors/response.interceptor';
+
+// Regex
+
+export * from './constant/regex';

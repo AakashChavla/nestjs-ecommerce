@@ -13,6 +13,7 @@ import { CommonModule } from './common/common.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { UserModule } from './module/user/user.module';
+import { AuthModule } from './module/auth/auth.module';
 
 @Module({
   imports: [
@@ -38,7 +39,7 @@ import { UserModule } from './module/user/user.module';
       useFactory: (configService: ConfigService) => ({
         fallbackLanguage: configService.get<string>('FALLBACK_LANGUAGE', 'en'),
         loaderOptions: {
-          path: path.join(__dirname, 'common', 'i18n'),
+          path: path.join(__dirname, '..', 'common', 'i18n'),
           watch: configService.get('NODE_ENV') !== 'production',
         },
       }),
@@ -51,6 +52,7 @@ import { UserModule } from './module/user/user.module';
 
     CommonModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

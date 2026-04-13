@@ -45,8 +45,8 @@ async function bootstrap() {
   // Enable Swagger only for non-production OR explicitly enabled
   if (process.env.ENABLE_SWAGGER === 'true') {
     const config = new DocumentBuilder()
-      .setTitle('SecureAudit API')
-      .setDescription('API documentation for SecureAudit Project')
+      .setTitle('E-Commerce API')
+      .setDescription('API documentation for E-Commerce Project')
       .setVersion('1.0.0')
       .addBearerAuth() // Simple default bearer auth
       .build();
@@ -57,7 +57,7 @@ async function bootstrap() {
       swaggerOptions: {
         persistAuthorization: true,
       },
-      customSiteTitle: 'Secure Audit API Docs',
+      customSiteTitle: 'E-Commerce API Docs',
     });
   }
 

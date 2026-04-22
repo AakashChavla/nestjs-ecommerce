@@ -75,7 +75,7 @@ export const generateEmailTemplate = (
 <body>
   <div class="container">
     <div class="header">
-      <h1>SecureAudit</h1>
+      <h1>E-Commerce API</h1>
     </div>
     
     <div class="content">
@@ -84,7 +84,7 @@ export const generateEmailTemplate = (
     </div>
     
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} SecureAudit. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} E-Commerce API. All rights reserved.</p>
       <p>
         <a href="#">Contact Us</a> &nbsp;|&nbsp; <a href="#">Privacy Policy</a>
       </p>

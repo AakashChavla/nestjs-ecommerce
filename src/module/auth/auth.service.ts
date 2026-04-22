@@ -4,13 +4,13 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 import { I18nService } from 'nestjs-i18n';
 import { DatabaseService } from 'src/common';
 import { MailService } from 'src/common/mail/mail.service';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { LoginDto } from './dto/login.dto';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -63,7 +63,7 @@ export class AuthService {
         },
       });
 
-      const name = `${user.firstName} ${user.lastName}`;
+      const name = user.name ?? user.email;
       await this.mailService.sendVerifiedSuccessMail(user.email, name);
       return {
         message: this.i18nService.t('user.verification.success'),
@@ -104,7 +104,6 @@ export class AuthService {
     const accessTokenPayload = {
       sub: user.id,
       role: user.role,
-      email: user.email,
     };
     const refreshTokenPayload = {
       sub: user.id,
@@ -160,7 +159,6 @@ export class AuthService {
     const accessTokenPayload = {
       sub: user.id,
       role: user.role,
-      email: user.email,
     };
 
     const accessToken = await this.jwtService.signAsync(accessTokenPayload, {
@@ -180,8 +178,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
+        name: true,
         role: true,
         emailVerified: true,
         createdAt: true,

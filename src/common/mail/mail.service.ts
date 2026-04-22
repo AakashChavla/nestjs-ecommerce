@@ -87,7 +87,7 @@ export class MailService {
     this.logger.log('Subject:', options.subject);
 
     const mailOptions = {
-      from: `"${process.env.MAIL_FROM_NAME || 'SecureAudit'}" <${process.env.SMTP_USER}>`,
+      from: `"${process.env.MAIL_FROM_NAME || 'E-Commerce API'}" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -143,7 +143,7 @@ export class MailService {
     const subject = 'Verify Your Email Address';
     const message = `
       <p>Hello <strong>${name}</strong>,</p>
-      <p>Thank you for registering with SecureAudit. To complete your registration, please verify your email address by clicking the button below:</p>
+      <p>Thank you for registering with E-Commerce API. To complete your registration, please verify your email address by clicking the button below:</p>
       <div style="text-align: center; margin: 30px 0;">
         <a href="${verificationUrl}" 
            style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
@@ -169,7 +169,7 @@ export class MailService {
     const subject = 'Email Verified Successful';
     const message = `
       <p>Hello <strong>${name}</strong>,</p>
-      <p>Thank you for registering with SecureAudit. Your Email: ${email} verified successfully.</p>
+      <p>Thank you for registering with E-Commerce API. Your Email: ${email} verified successfully.</p>
      `;
 
     await this.sendEmail({

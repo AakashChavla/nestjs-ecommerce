@@ -1,11 +1,13 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/common';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { MailService } from 'src/common/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { I18nService } from 'nestjs-i18n';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { DatabaseService } from 'src/common';
+import { MailService } from 'src/common/mail/mail.service';
+import { RegisterSellerDto } from './dto/register-seller.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class UserService {
@@ -17,7 +19,11 @@ export class UserService {
     private configService: ConfigService,
   ) {}
 
-  async registerUser(dto: RegisterUserDto) {
+  private async registerAccount(
+    dto: RegisterUserDto | RegisterSellerDto,
+    role: UserRole,
+    successMessageKey: string,
+  ) {
     // Check if user already exists
     const existingUser = await this.databaseService.user.findUnique({
       where: { email: dto.email },
@@ -35,23 +41,22 @@ export class UserService {
       user = await this.databaseService.user.update({
         where: { id: existingUser.id },
         data: {
-          firstName: dto.firstName,
-          lastName: dto.lastName,
+          name: dto.name,
+          role,
           passwordHash,
           isActive: true,
         },
         select: {
           id: true,
           email: true,
-          firstName: true,
-          lastName: true,
+          name: true,
           role: true,
           isActive: true,
           emailVerified: true,
           createdAt: true,
         },
       });
-    } else if (existingUser && existingUser.emailVerified) {
+    } else if (existingUser?.emailVerified) {
       // If user exists and email is verified, throw error
       throw new ConflictException(
         this.i18n.t('user.registration.email_exists'),
@@ -61,8 +66,8 @@ export class UserService {
       user = await this.databaseService.user.create({
         data: {
           email: dto.email,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
+          name: dto.name,
+          role,
           passwordHash,
           emailVerified: false,
           isActive: true,
@@ -70,8 +75,7 @@ export class UserService {
         select: {
           id: true,
           email: true,
-          firstName: true,
-          lastName: true,
+          name: true,
           role: true,
           isActive: true,
           emailVerified: true,
@@ -97,13 +101,29 @@ export class UserService {
     // Send verification email
     await this.mailService.sendVerificationEmail(
       user.email,
-      `${user.firstName} ${user.lastName}`,
+      user.name ?? dto.name,
       verificationUrl,
     );
 
     return {
-      message: this.i18n.t('user.registration.success'),
+      message: this.i18n.t(successMessageKey),
       data: user,
     };
+  }
+
+  async registerUser(dto: RegisterUserDto) {
+    return await this.registerAccount(
+      dto,
+      UserRole.USER,
+      'user.registration.success',
+    );
+  }
+
+  async registerSeller(dto: RegisterSellerDto) {
+    return await this.registerAccount(
+      dto,
+      UserRole.SELLER,
+      'user.registration.seller_success',
+    );
   }
 }

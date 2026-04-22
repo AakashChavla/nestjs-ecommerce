@@ -1,6 +1,7 @@
 {
   "registration": {
     "success": "User registered successfully",
+    "seller_success": "Seller registered successfully",
     "email_exists": "User with this email already exists"
   },
   "verification": {

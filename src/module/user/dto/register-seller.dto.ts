@@ -4,9 +4,9 @@ import { i18nValidationMessage } from 'nestjs-i18n';
 import { REGEX } from '../../../common/constant/regex';
 import { RequiredString } from '../../../common/helpers/validation/RequiredString.validation';
 
-export class RegisterUserDto {
+export class RegisterSellerDto {
   @ApiProperty({
-    description: 'User Email Address',
+    description: 'Seller Email Address',
     example: 'john.doe.@example.com',
     minLength: 2,
     maxLength: 100,
@@ -25,7 +25,7 @@ export class RegisterUserDto {
   email: string;
 
   @ApiProperty({
-    description: 'Enter User Name',
+    description: 'Enter Seller Name',
     example: 'John Doe',
     minLength: 2,
     maxLength: 100,
@@ -36,7 +36,7 @@ export class RegisterUserDto {
   name: string;
 
   @ApiProperty({
-    description: 'Enter User Password',
+    description: 'Enter Seller Password',
     example: 'Secure@123#',
     minLength: 8,
     maxLength: 128,

@@ -1,6 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { RegisterSellerDto } from './dto/register-seller.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserService } from './user.service';
 
@@ -43,7 +42,7 @@ export class UserController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Validation error',
   })
-  async registerSeller(@Body() registerSellerDto: RegisterSellerDto) {
-    return await this.userService.registerSeller(registerSellerDto);
+  async registerSeller(@Body() registerUserDto: RegisterUserDto) {
+    return await this.userService.registerSeller(registerUserDto);
   }
 }

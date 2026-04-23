@@ -6,7 +6,6 @@ import * as bcrypt from 'bcrypt';
 import { I18nService } from 'nestjs-i18n';
 import { DatabaseService } from 'src/common';
 import { MailService } from 'src/common/mail/mail.service';
-import { RegisterSellerDto } from './dto/register-seller.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
@@ -20,7 +19,7 @@ export class UserService {
   ) {}
 
   private async registerAccount(
-    dto: RegisterUserDto | RegisterSellerDto,
+    dto: RegisterUserDto,
     role: UserRole,
     successMessageKey: string,
   ) {
@@ -89,7 +88,9 @@ export class UserService {
       { email: user.email, userId: user.id, type: 'email-verification' },
       {
         expiresIn: '24h',
-        secret: this.configService.get('JWT_ACCESS_SECRET_TOKEN'),
+        secret: this.configService.getOrThrow<string>(
+          'JWT_VERIFICATION_SECRET_TOKEN',
+        ),
       },
     );
 
@@ -119,7 +120,7 @@ export class UserService {
     );
   }
 
-  async registerSeller(dto: RegisterSellerDto) {
+  async registerSeller(dto: RegisterUserDto) {
     return await this.registerAccount(
       dto,
       UserRole.SELLER,

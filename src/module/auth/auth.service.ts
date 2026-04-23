@@ -26,7 +26,9 @@ export class AuthService {
     try {
       // Verify and decode the token
       const payload = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_ACCESS_SECRET_TOKEN'),
+        secret: this.configService.getOrThrow<string>(
+          'JWT_VERIFICATION_SECRET_TOKEN',
+        ),
       });
 
       // Check if token type is correct
@@ -86,7 +88,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const { email, password } = dto;
-    const user = await this.databaseService.user.findFirst({
+    const user = await this.databaseService.user.findUnique({
       where: { email },
     });
 
@@ -100,6 +102,11 @@ export class AuthService {
         this.i18nService.t('user.auth.invalid_credential'),
       );
     }
+
+    await this.databaseService.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
 
     const accessTokenPayload = {
       sub: user.id,

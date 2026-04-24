@@ -14,6 +14,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { UserModule } from './module/user/user.module';
 import { AuthModule } from './module/auth/auth.module';
+import { AddressModule } from './module/address/address.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { AuthModule } from './module/auth/auth.module';
     CommonModule,
     UserModule,
     AuthModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [

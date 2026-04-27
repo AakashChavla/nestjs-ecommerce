@@ -9,6 +9,15 @@ export class MorganConfig {
   private static config = getMorganEnvironmentConfig();
 
   /**
+   * Writes a log message to the console followed by a blank line
+   * so each API call is visually separated in the terminal.
+   */
+  private static log(message: string) {
+    console.log(message.trim());
+    console.log(''); // ← blank line between requests
+  }
+
+  /**
    * Get Morgan middleware based on environment and configuration
    */
   static getMiddleware() {
@@ -51,8 +60,7 @@ export class MorganConfig {
       },
       stream: {
         write: (message: string) => {
-          // You can integrate with your logging service here
-          console.log(message.trim());
+          MorganConfig.log(message);
         },
       },
     });
@@ -64,10 +72,14 @@ export class MorganConfig {
   private static getCustomFormatConfig(format: string) {
     return morgan(format, {
       skip: (req: Request, _res: Response) => {
-        // Skip health check endpoints to reduce log noise
         return (
           req.originalUrl === '/health' || req.originalUrl === '/api/v1/health'
         );
+      },
+      stream: {
+        write: (message: string) => {
+          MorganConfig.log(message);
+        },
       },
     });
   }
@@ -78,7 +90,13 @@ export class MorganConfig {
    * - Logs all requests for debugging
    */
   private static getDevelopmentConfig() {
-    return morgan('dev');
+    return morgan('dev', {
+      stream: {
+        write: (message: string) => {
+          MorganConfig.log(message);
+        },
+      },
+    });
   }
 
   /**
@@ -87,7 +105,13 @@ export class MorganConfig {
    * - Suitable for testing environments
    */
   private static getDefaultConfig() {
-    return morgan('short');
+    return morgan('short', {
+      stream: {
+        write: (message: string) => {
+          MorganConfig.log(message);
+        },
+      },
+    });
   }
 
   /**
@@ -100,10 +124,14 @@ export class MorganConfig {
 
     return morgan(customFormat, {
       skip: (req: Request, _res: Response) => {
-        // Skip health check endpoints to reduce log noise
         return (
           req.originalUrl === '/health' || req.originalUrl === '/api/v1/health'
         );
+      },
+      stream: {
+        write: (message: string) => {
+          MorganConfig.log(message);
+        },
       },
     });
   }
@@ -113,14 +141,12 @@ export class MorganConfig {
    * Logs requests that might be security-related
    */
   static getSecurityConfig() {
-    // Check if security logging is disabled
     if (this.config.ENABLE_SECURITY_LOGGING === 'false') {
       return (req: Request, res: Response, next: NextFunction) => next();
     }
 
     return morgan('combined', {
       skip: (req: Request, _res: Response) => {
-        // Log failed authentication and authorization
         const isSecurityRelevant =
           _res.statusCode === 401 ||
           _res.statusCode === 403 ||
@@ -131,8 +157,8 @@ export class MorganConfig {
       },
       stream: {
         write: (message: string) => {
-          // Mark as security log for monitoring systems
           console.log(`[SECURITY] ${message.trim()}`);
+          console.log(''); // ← blank line after security logs too
         },
       },
     });

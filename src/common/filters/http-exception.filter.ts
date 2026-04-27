@@ -5,6 +5,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { I18nContext } from 'nestjs-i18n';
@@ -30,6 +31,8 @@ interface ErrorResponse {
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
   catch(exception: HttpException | Error | unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -99,23 +102,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
         errors = validationErrors;
         message = 'Validation failed';
       }
-    } else if (exception instanceof HttpException) {
-      // Handle other HTTP exceptions
-      const exceptionResponse = exception.getResponse();
+    }
 
-      if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-        const responseObj = exceptionResponse as HttpExceptionResponse;
+    if (exception instanceof HttpException) {
+      const responseObj = exception.getResponse() as HttpExceptionResponse;
 
-        if (responseObj.message) {
-          if (Array.isArray(responseObj.message)) {
-            errors = responseObj.message;
-            message = 'Validation failed';
-          } else if (
-            typeof responseObj.message === 'string' &&
-            responseObj.message !== 'Bad Request'
-          ) {
-            message = responseObj.message;
-          }
+      if (typeof responseObj === 'object' && responseObj !== null) {
+        if (Array.isArray(responseObj.message)) {
+          errors = responseObj.message as string[];
+          message = 'Validation failed';
+        } else if (
+          typeof responseObj.message === 'string' &&
+          responseObj.message !== 'Bad Request'
+        ) {
+          message = responseObj.message;
         }
 
         if (
@@ -129,10 +129,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     }
 
+    // ── Logging ──────────────────────────────────────────────────────────
+    // Log 5xx errors as errors (unexpected / server-side failures)
+    // Log 4xx as warnings (client mistakes, not our bug)
+    if (status >= 500) {
+      this.logger.error(
+        `[${status}] ${request.method} ${request.url} — ${String(message)}`,
+        exception instanceof Error ? exception.stack : String(exception),
+      );
+    } else if (status >= 400) {
+      this.logger.warn(
+        `[${status}] ${request.method} ${request.url} — ${String(message)}`,
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     const errorResponse: ErrorResponse = {
       success: false,
       statusCode: status,
-      message: message,
+      message,
       timestamp: new Date().toISOString(),
       path: request.url,
     };

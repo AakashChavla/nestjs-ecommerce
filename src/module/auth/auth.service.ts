@@ -1,21 +1,19 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { I18nService } from 'nestjs-i18n';
-import { DatabaseService } from 'src/common';
-import { MailService } from 'src/common/mail/mail.service';
+import { MailService } from 'src/common/config/mail/mail.service';
+import { BusinessException, NotFoundException } from 'src/common/exceptions';
+import { UserRepository } from '../user/user.repository';
+import { DEFAULT_TOKEN_EXPIRY, TokenType } from './constants/auth.constants';
 import { LoginDto } from './dto/login.dto';
+import { JwtAccessPayload, JwtRefreshPayload } from './types/auth.types';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private databaseService: DatabaseService,
+    private userRepository: UserRepository,
     private mailService: MailService,
     private i18nService: I18nService,
     private jwtService: JwtService,
@@ -32,20 +30,20 @@ export class AuthService {
       });
 
       // Check if token type is correct
-      if (payload.type !== 'email-verification') {
-        throw new BadRequestException(
+      if (payload.type !== TokenType.EMAIL_VERIFICATION) {
+        throw new BusinessException(
           this.i18nService.t('user.verification.invalid_token'),
+          'INVALID_VERIFICATION_TOKEN',
         );
       }
 
       // Find the user
-      const user = await this.databaseService.user.findUnique({
-        where: { id: payload.userId },
-      });
+      const user = await this.userRepository.findById(payload.userId);
 
       if (!user) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           this.i18nService.t('user.verification.user_not_found'),
+          'USER_NOT_FOUND',
         );
       }
 
@@ -58,12 +56,7 @@ export class AuthService {
       }
 
       // Update user to mark email as verified
-      await this.databaseService.user.update({
-        where: { id: user.id },
-        data: {
-          emailVerified: true,
-        },
-      });
+      await this.userRepository.markEmailAsVerified(user.id);
 
       const name = user.name ?? user.email;
       await this.mailService.sendVerifiedSuccessMail(user.email, name);
@@ -72,14 +65,15 @@ export class AuthService {
         data: { emailVerified: true },
       };
     } catch (error) {
-      if (error.name === 'TokenExpiredError') {
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
         throw new UnauthorizedException(
           this.i18nService.t('user.verification.token_expired'),
         );
       }
-      if (error.name === 'JsonWebTokenError') {
-        throw new BadRequestException(
+      if (error instanceof Error && error.name === 'JsonWebTokenError') {
+        throw new BusinessException(
           this.i18nService.t('user.verification.invalid_token'),
+          'INVALID_TOKEN',
         );
       }
       throw error;
@@ -88,12 +82,13 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const { email, password } = dto;
-    const user = await this.databaseService.user.findUnique({
-      where: { email },
-    });
+    const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
-      throw new NotFoundException(this.i18nService.t('common.user_not_found'));
+      throw new NotFoundException(
+        this.i18nService.t('common.user_not_found'),
+        'USER_NOT_FOUND',
+      );
     }
 
     const isPasswordMatched = await bcrypt.compare(password, user.passwordHash);
@@ -103,28 +98,30 @@ export class AuthService {
       );
     }
 
-    await this.databaseService.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    await this.userRepository.updateLastLogin(user.id);
 
-    const accessTokenPayload = {
+    const accessTokenPayload: JwtAccessPayload = {
       sub: user.id,
+      email: user.email,
       role: user.role,
     };
-    const refreshTokenPayload = {
+    const refreshTokenPayload: JwtRefreshPayload = {
       sub: user.id,
       version: user.tokenVersion,
     };
 
     const accessToken = await this.jwtService.signAsync(accessTokenPayload, {
       secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET_TOKEN'),
-      expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN') || '15m',
+      expiresIn:
+        this.configService.get('JWT_ACCESS_EXPIRES_IN') ||
+        DEFAULT_TOKEN_EXPIRY.ACCESS,
     });
 
     const refreshToken = await this.jwtService.signAsync(refreshTokenPayload, {
       secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET_TOKEN'),
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN') || '7d',
+      expiresIn:
+        this.configService.get('JWT_REFRESH_EXPIRES_IN') ||
+        DEFAULT_TOKEN_EXPIRY.REFRESH,
     });
 
     return {
@@ -135,14 +132,7 @@ export class AuthService {
 
   async logout(userId: string) {
     // Invalidate all tokens by incrementing the tokenVersion
-    const updatedUser = await this.databaseService.user.update({
-      where: { id: userId },
-      data: {
-        tokenVersion: {
-          increment: 1,
-        },
-      },
-    });
+    const updatedUser = await this.userRepository.incrementTokenVersion(userId);
 
     return {
       message: this.i18nService.t('user.auth.logout_success'),
@@ -152,9 +142,7 @@ export class AuthService {
 
   async refreshAccessToken(userId: string, tokenVersion: number) {
     // Verify user exists and token version matches
-    const user = await this.databaseService.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.userRepository.findById(userId);
 
     if (!user || user.tokenVersion !== tokenVersion) {
       throw new UnauthorizedException(
@@ -163,14 +151,17 @@ export class AuthService {
     }
 
     // Generate new access token
-    const accessTokenPayload = {
+    const accessTokenPayload: JwtAccessPayload = {
       sub: user.id,
+      email: user.email,
       role: user.role,
     };
 
     const accessToken = await this.jwtService.signAsync(accessTokenPayload, {
       secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET_TOKEN'),
-      expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN') || '15m',
+      expiresIn:
+        this.configService.get('JWT_ACCESS_EXPIRES_IN') ||
+        DEFAULT_TOKEN_EXPIRY.ACCESS,
     });
 
     return {
@@ -180,21 +171,21 @@ export class AuthService {
   }
 
   async getMyProfile(userId: string) {
-    const user = await this.databaseService.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        emailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const user = await this.userRepository.findByIdWithSelect(userId, {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      emailVerified: true,
+      createdAt: true,
+      updatedAt: true,
     });
 
     if (!user) {
-      throw new NotFoundException(this.i18nService.t('common.user_not_found'));
+      throw new NotFoundException(
+        this.i18nService.t('common.user_not_found'),
+        'USER_NOT_FOUND',
+      );
     }
 
     return {

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { Country, State, City, ICountry } from 'country-state-city';
+import { City, Country, ICountry, State } from 'country-state-city';
 
 const BATCH_SIZE = 1000;
 

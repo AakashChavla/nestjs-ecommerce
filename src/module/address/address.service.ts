@@ -1,24 +1,26 @@
-import { DatabaseService } from './../../common/database/database.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { GoogleMapsService } from '../../common/config/google-map/google-maps.service';
-import { CreateAddressDto } from './dto/create-address.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Injectable } from '@nestjs/common';
 import {
   PaginatedResponseDto,
   PaginationMetaDto,
 } from 'src/common/dto/paginated-response.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { NotFoundException } from 'src/common/exceptions';
+import { GoogleMapsService } from '../../common/config/google-map/google-maps.service';
+import { AddressRepository } from './address.repository';
+import { CreateAddressDto } from './dto/create-address.dto';
 
 @Injectable()
 export class AddressService {
   constructor(
     private readonly googleMapsService: GoogleMapsService,
-    private readonly databaseService: DatabaseService,
+    private readonly addressRepository: AddressRepository,
   ) {}
 
   // ── Helper ──────────────────────────────────────────────────────────────
   private buildMeta(
     pagination: PaginationDto,
     totalItems: number,
+    itemsOnCurrentPage: number,
   ): PaginationMetaDto {
     const page = pagination.page ?? 1;
     const limit = pagination.limit ?? 10;
@@ -29,7 +31,7 @@ export class AddressService {
       limit,
       totalItems,
       totalPages,
-      itemsOnCurrentPage: 0, // updated after data fetch
+      itemsOnCurrentPage,
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1,
     };
@@ -39,45 +41,10 @@ export class AddressService {
   async getCountries(
     pagination: PaginationDto,
   ): Promise<PaginatedResponseDto<unknown>> {
-    const page = pagination.page ?? 1;
-    const limit = pagination.limit ?? 10;
-    const skip = (page - 1) * limit;
-    const search = pagination.search?.trim();
-    const sortBy = pagination.sortBy ?? 'name';
-    const sortOrder = pagination.sortOrder ?? 'ASC';
+    const { data, totalItems } =
+      await this.addressRepository.getCountries(pagination);
 
-    const where = search
-      ? {
-          isActive: true,
-          OR: [
-            { name: { contains: search, mode: 'insensitive' as const } },
-            { countryCode: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : { isActive: true };
-
-    const [data, totalItems] = await Promise.all([
-      this.databaseService.country.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder.toLowerCase() },
-        select: {
-          id: true,
-          name: true,
-          countryCode: true,
-          flag: true,
-          phoneCode: true,
-          currency: true,
-          latitude: true,
-          longitude: true,
-        },
-      }),
-      this.databaseService.country.count({ where }),
-    ]);
-
-    const meta = this.buildMeta(pagination, totalItems);
-    meta.itemsOnCurrentPage = data.length;
+    const meta = this.buildMeta(pagination, totalItems, data.length);
 
     return new PaginatedResponseDto(data, meta);
   }
@@ -87,44 +54,10 @@ export class AddressService {
     countryId: string,
     pagination: PaginationDto,
   ): Promise<PaginatedResponseDto<unknown>> {
-    const page = pagination.page ?? 1;
-    const limit = pagination.limit ?? 10;
-    const skip = (page - 1) * limit;
-    const search = pagination.search?.trim();
-    const sortBy = pagination.sortBy ?? 'name';
-    const sortOrder = pagination.sortOrder ?? 'ASC';
+    const { data, totalItems } =
+      await this.addressRepository.getStatesByCountry(countryId, pagination);
 
-    const where = {
-      countryId,
-      isActive: true,
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' as const } },
-          { stateCode: { contains: search, mode: 'insensitive' as const } },
-        ],
-      }),
-    };
-
-    const [data, totalItems] = await Promise.all([
-      this.databaseService.state.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder.toLowerCase() },
-        select: {
-          id: true,
-          name: true,
-          stateCode: true,
-          countryId: true,
-          latitude: true,
-          longitude: true,
-        },
-      }),
-      this.databaseService.state.count({ where }),
-    ]);
-
-    const meta = this.buildMeta(pagination, totalItems);
-    meta.itemsOnCurrentPage = data.length;
+    const meta = this.buildMeta(pagination, totalItems, data.length);
 
     return new PaginatedResponseDto(data, meta);
   }
@@ -134,45 +67,12 @@ export class AddressService {
     stateId: string,
     pagination: PaginationDto,
   ): Promise<PaginatedResponseDto<unknown>> {
-    const page = pagination.page ?? 1;
-    const limit = pagination.limit ?? 10;
-    const skip = (page - 1) * limit;
-    const search = pagination.search?.trim();
-    const sortBy = pagination.sortBy ?? 'name';
-    const sortOrder = pagination.sortOrder ?? 'ASC';
-
-    const where = {
+    const { data, totalItems } = await this.addressRepository.getCitiesByState(
       stateId,
-      isActive: true,
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' as const } },
-          { cityCode: { contains: search, mode: 'insensitive' as const } },
-        ],
-      }),
-    };
+      pagination,
+    );
 
-    const [data, totalItems] = await Promise.all([
-      this.databaseService.city.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder.toLowerCase() },
-        select: {
-          id: true,
-          name: true,
-          cityCode: true,
-          stateId: true,
-          countryId: true,
-          latitude: true,
-          longitude: true,
-        },
-      }),
-      this.databaseService.city.count({ where }),
-    ]);
-
-    const meta = this.buildMeta(pagination, totalItems);
-    meta.itemsOnCurrentPage = data.length;
+    const meta = this.buildMeta(pagination, totalItems, data.length);
 
     return new PaginatedResponseDto(data, meta);
   }
@@ -191,16 +91,13 @@ export class AddressService {
       // Fetch city → state → country so we can build a precise address string.
       // A vague string like "221B Baker St, 395001, India" gives poor accuracy.
       // A full string like "221B Baker St, Surat, Gujarat, India" is far better.
-      const city = await this.databaseService.city.findUnique({
-        where: { id: dto.cityId },
-        include: {
-          state: true,
-          country: true,
-        },
-      });
+      const city = await this.addressRepository.findCityById(dto.cityId);
 
       if (!city) {
-        throw new NotFoundException(`City with id "${dto.cityId}" not found`);
+        throw new NotFoundException(
+          `City with id "${dto.cityId}" not found`,
+          'CITY_NOT_FOUND',
+        );
       }
 
       // Build the most complete address string possible for accurate geocoding.
@@ -239,24 +136,7 @@ export class AddressService {
    * (with confirmed lat/lng) to the database.
    */
   async confirm(dto: CreateAddressDto) {
-    return this.databaseService.address.create({
-      data: {
-        ownerType: dto.ownerType,
-        ownerId: dto.ownerId,
-        addressType: dto.addressType,
-        isDefault: dto.isDefault ?? false,
-        label: dto.label,
-        addressLine1: dto.addressLine1,
-        addressLine2: dto.addressLine2,
-        landmark: dto.landmark,
-        pincode: dto.pincode,
-        cityId: dto.cityId,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        contactName: dto.contactName,
-        contactPhone: dto.contactPhone,
-      },
-    });
+    return this.addressRepository.createAddress(dto);
   }
 
   /**

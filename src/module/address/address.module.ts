@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AddressService } from './address.service';
-import { AddressController } from './address.controller';
 import { GoogleMapsModule } from '../../common/config/google-map/google-maps.module';
+import { AddressController } from './address.controller';
+import { AddressRepository } from './address.repository';
+import { AddressService } from './address.service';
 
 @Module({
   imports: [GoogleMapsModule], // ← add this
   controllers: [AddressController],
-  providers: [AddressService],
+  providers: [AddressService, AddressRepository],
 })
 export class AddressModule {}

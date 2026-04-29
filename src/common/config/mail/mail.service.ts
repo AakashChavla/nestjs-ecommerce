@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { REGEX } from '../../helpers/constant/regex';
 import { generateEmailTemplate } from './mail.template';
-import { REGEX } from '../constant/regex';
 
 interface EmailOptions {
   to: string | string[];
@@ -17,32 +18,28 @@ interface EmailOptions {
 }
 
 @Injectable()
-export class MailService {
+export class MailService implements OnModuleInit {
   private readonly logger = new Logger(MailService.name);
   private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
   private isMailServiceReady: boolean = false;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {}
+
+  async onModuleInit() {
     const transportOptions: SMTPTransport.Options = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: process.env.SMTP_SECURE === 'true',
+      host: this.configService.getOrThrow<string>('SMTP_HOST'),
+      port: this.configService.get<number>('SMTP_PORT') ?? 587,
+      secure: this.configService.get<boolean>('SMTP_SECURE') ?? false,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: this.configService.getOrThrow<string>('SMTP_USER'),
+        pass: this.configService.getOrThrow<string>('SMTP_PASS'),
       },
     };
-
-    // Nodemailer types are not fully picked up by the linter in this setup,
-    // so we explicitly cast the created transporter while suppressing
-    // unsafe-access warnings for this external library call.
 
     this.transporter = nodemailer.createTransport(
       transportOptions,
     ) as nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
-  }
 
-  async onModuleInit() {
     await this.verifyConnection();
   }
 
@@ -86,8 +83,11 @@ export class MailService {
     this.logger.log('Attempting to send email to:', options.to);
     this.logger.log('Subject:', options.subject);
 
+    const fromName =
+      this.configService.get<string>('MAIL_FROM_NAME') ?? 'E-Commerce API';
+    const smtpUser = this.configService.getOrThrow<string>('SMTP_USER');
     const mailOptions = {
-      from: `"${process.env.MAIL_FROM_NAME || 'E-Commerce API'}" <${process.env.SMTP_USER}>`,
+      from: `"${fromName}" <${smtpUser}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,

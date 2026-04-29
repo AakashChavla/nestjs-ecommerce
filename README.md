@@ -1,98 +1,359 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS E-Commerce API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A modern, scalable e-commerce backend API built with NestJS, PostgreSQL, and Prisma.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📋 Tech Stack
 
-## Description
+| Component          | Technology        | Version               |
+| ------------------ | ----------------- | --------------------- |
+| **Framework**      | NestJS            | 11.0.1                |
+| **Runtime**        | Node.js           | 18+                   |
+| **Language**       | TypeScript        | 5.x                   |
+| **Database**       | PostgreSQL        | 12+                   |
+| **ORM**            | Prisma            | 7.3.0                 |
+| **Authentication** | JWT (Passport)    | @nestjs/passport 11.x |
+| **Validation**     | Class Validator   | 0.14.x                |
+| **Logging**        | Morgan + Winston  | 1.11.x                |
+| **Email**          | Nodemailer        | 6.9.x                 |
+| **i18n**           | nestjs-i18n       | 10.4.x                |
+| **Rate Limiting**  | @nestjs/throttler | 6.2.x                 |
+| **Testing**        | Jest              | 30.x                  |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 Setup
 
-## Project setup
+### Prerequisites
 
-```bash
-$ npm install
-```
+- Node.js 18 or higher
+- PostgreSQL 12 or higher
+- npm or yarn
 
-## Compile and run the project
+### Installation
 
-```bash
-# development
-$ npm run start
+1. **Clone repository**
+   \`\`\`bash
+   git clone <repository-url>
+   cd nestjs-ecommerce
+   \`\`\`
 
-# watch mode
-$ npm run start:dev
+2. **Install dependencies**
+   \`\`\`bash
+   npm install
+   \`\`\`
 
-# production mode
-$ npm run start:prod
-```
+3. **Configure environment**
+   \`\`\`bash
+   cp .env.example .env
 
-## Run tests
+   # Edit .env with your configuration
 
-```bash
-# unit tests
-$ npm run test
+   \`\`\`
 
-# e2e tests
-$ npm run test:e2e
+4. **Setup database**
+   \`\`\`bash
+   npm run prisma:migrate
+   npm run prisma:seed
+   \`\`\`
 
-# test coverage
-$ npm run test:cov
-```
+5. **Start development server**
+   \`\`\`bash
+   npm run start:dev
+   \`\`\`
 
-## Deployment
+## 📝 Environment Variables
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Core Configuration
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+\`\`\`env
+NODE_ENV=development
+PORT=8008
+APP_URL=http://localhost:8008
+ENABLE_SWAGGER=true
+FALLBACK_LANGUAGE=en
+\`\`\`
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### Database
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+\`\`\`env
+DATABASE_URL=postgresql://user:password@localhost:5432/ecommerce-nest
+\`\`\`
 
-## Resources
+### JWT Authentication
 
-Check out a few resources that may come in handy when working with NestJS:
+\`\`\`env
+JWT_ACCESS_SECRET_TOKEN=your-secret-key-min-32-chars
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_SECRET_TOKEN=your-refresh-secret-key
+JWT_REFRESH_EXPIRES_IN=7d
+JWT_VERIFICATION_SECRET_TOKEN=your-verification-secret-key
+\`\`\`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Email (SMTP)
 
-## Support
+\`\`\`env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_SECURE=false
+SMTP_FROM_EMAIL=noreply@example.com
+SMTP_FROM_NAME=MyCompany
+\`\`\`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Google Maps API
 
-## Stay in touch
+\`\`\`env
+GOOGLE_MAPS_API_KEY=your-api-key
+GOOGLE_MAPS_GEOCODING_BASE_URL=https://maps.googleapis.com/maps/api/geocode/json
+\`\`\`
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Rate Limiting
 
-## License
+\`\`\`env
+RATE_LIMIT_TTL=60
+RATE_LIMIT_LIMIT=100
+\`\`\`
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### HTTP Logging (Morgan)
+
+\`\`\`env
+ENABLE_HTTP_LOGGING=true
+HTTP_LOG_FORMAT=combined
+LOG_ERRORS_ONLY=false
+ENABLE_SECURITY_LOGGING=true
+HTTP_LOG_FILE_PATH=./logs/http.log
+\`\`\`
+
+## 🗂️ Project Structure
+
+\`\`\`
+src/
+├── app.controller.ts # Root controller
+├── app.module.ts # Root module with global config
+├── app.service.ts # Root service
+├── main.ts # Application entry point
+├── common/ # Shared resources
+│ ├── config/ # Configuration modules
+│ │ ├── database/ # Prisma database service
+│ │ ├── google-map/ # Google Maps API service
+│ │ └── mail/ # SMTP email service
+│ ├── constant/ # Application constants
+│ ├── dto/ # Shared DTOs (pagination, response)
+│ ├── exceptions/ # Custom exception classes
+│ ├── filters/ # Exception filters
+│ ├── interceptors/ # Response interceptors
+│ ├── helpers/ # Utility functions & validators
+│ ├── i18n/ # Internationalization resources
+│ └── common.module.ts # Common module exports
+├── module/ # Feature modules
+│ ├── auth/ # Authentication (JWT, guards, decorators)
+│ │ ├── auth.controller.ts
+│ │ ├── auth.service.ts
+│ │ ├── constants/ # Auth-specific constants
+│ │ ├── decorator/ # @Roles, @Public, @CurrentUser
+│ │ ├── dto/ # Login DTO
+│ │ ├── guards/ # JWT, Refresh, Role guards
+│ │ ├── strategies/ # Passport strategies
+│ │ └── auth.module.ts
+│ ├── user/ # User management
+│ │ ├── user.controller.ts
+│ │ ├── user.service.ts
+│ │ ├── user.repository.ts # Data access layer
+│ │ ├── dto/ # Registration DTOs
+│ │ └── user.module.ts
+│ ├── address/ # Address management
+│ │ ├── address.controller.ts
+│ │ ├── address.service.ts
+│ │ ├── address.repository.ts # Data access layer
+│ │ ├── dto/ # Address DTOs
+│ │ └── address.module.ts
+│ └── ...
+└── database/ # Database utilities
+└── seeders/ # Database seeding scripts
+
+prisma/
+├── schema.prisma # Database schema
+├── migrations/ # Database migration history
+└── seed.ts # Seed script
+\`\`\`
+
+## 🔑 API Routes
+
+### Authentication
+
+| Method | Route                                | Description                  |
+| ------ | ------------------------------------ | ---------------------------- |
+| POST   | \`/api/v1/auth/register\`            | Register new user            |
+| POST   | \`/api/v1/auth/login\`               | User login                   |
+| POST   | \`/api/v1/auth/logout\`              | User logout                  |
+| POST   | \`/api/v1/auth/refresh\`             | Refresh access token         |
+| GET    | \`/api/v1/auth/verify-email/:token\` | Verify email                 |
+| GET    | \`/api/v1/auth/profile\`             | Get user profile (protected) |
+
+### User Management
+
+| Method | Route                 | Description    |
+| ------ | --------------------- | -------------- |
+| POST   | \`/api/v1/users\`     | Create user    |
+| GET    | \`/api/v1/users/:id\` | Get user by ID |
+| PUT    | \`/api/v1/users/:id\` | Update user    |
+| DELETE | \`/api/v1/users/:id\` | Delete user    |
+
+### Address Management
+
+| Method | Route                                   | Description           |
+| ------ | --------------------------------------- | --------------------- |
+| GET    | \`/api/v1/addresses/countries\`         | Get countries list    |
+| GET    | \`/api/v1/addresses/states/:countryId\` | Get states by country |
+| GET    | \`/api/v1/addresses/cities/:stateId\`   | Get cities by state   |
+| POST   | \`/api/v1/addresses\`                   | Create address        |
+| GET    | \`/api/v1/addresses/:id\`               | Get address           |
+| PUT    | \`/api/v1/addresses/:id\`               | Update address        |
+| DELETE | \`/api/v1/addresses/:id\`               | Delete address        |
+
+## 📦 NPM Scripts
+
+\`\`\`bash
+
+# Development
+
+npm run start # Run production build
+npm run start:dev # Run with hot reload
+npm run start:debug # Run with debugger
+
+# Build & Compilation
+
+npm run build # Build for production
+npm run lint # Run ESLint
+
+# Database
+
+npm run prisma:migrate # Create and run migration
+npm run prisma:seed # Run database seeders
+npm run prisma:reset # Reset database and run migrations
+npm run prisma:studio # Open Prisma Studio GUI
+
+# Testing
+
+npm run test # Run unit tests
+npm run test:watch # Run tests in watch mode
+npm run test:cov # Generate coverage report
+npm run test:e2e # Run e2e tests
+npm run test:e2e:watch # Run e2e tests in watch mode
+\`\`\`
+
+## 🔐 Security Features
+
+- **JWT Authentication**: Secure token-based authentication with access/refresh token rotation
+- **Password Hashing**: Bcrypt with salt rounds for secure password storage
+- **Role-Based Access Control**: Type-safe @Roles() decorator with enum validation
+- **Input Validation**: Class validator DTOs with custom validators
+- **Rate Limiting**: Global throttle guard (100 req/60s) with per-route customization
+- **CORS Protection**: Configurable origin allowlist
+- **SQL Injection Prevention**: Prisma parameterized queries + sortBy allowlist validation
+- **Email Verification**: JWT-based email verification tokens (24h expiry)
+- **Logout Implementation**: Token version increment prevents old tokens
+
+## 🧪 Testing
+
+Test files follow Jest conventions:
+
+\`\`\`bash
+
+# Run all tests
+
+npm run test
+
+# Run specific test file
+
+npm run test -- user.service.spec.ts
+
+# Generate coverage report
+
+npm run test:cov
+\`\`\`
+
+Test coverage targets:
+
+- **Unit Tests**: >80% branch coverage
+- **Integration Tests**: Key API endpoints
+- **E2E Tests**: Critical user flows
+
+## 📚 Architecture Highlights
+
+### Repository Pattern
+
+Data access abstraction layer for clean separation of concerns:
+
+- \`UserRepository\`: User CRUD operations
+- \`AddressRepository\`: Address, Country, State, City operations
+
+### Custom Exceptions
+
+Type-safe exception handling:
+
+- \`NotFoundException\`: 404 errors
+- \`BusinessException\`: Business logic violations
+- \`ConflictException\`: Duplicate resource errors
+
+### Internationalization
+
+Multi-language support:
+
+- English (en)
+- Hindi (hi)
+- Extensible structure for additional languages
+
+### Guards & Decorators
+
+- \`JwtAuthGuard\`: Protects authenticated routes
+- \`JwtRefreshGuard\`: Token refresh validation
+- \`RoleGuard\`: Role-based authorization
+- \`@Public()\`: Skip authentication
+- \`@Roles(UserRole.ADMIN)\`: Role requirement
+
+## 🔄 Development Workflow
+
+### Creating a New Feature Module
+
+1. Create module directory: \`src/module/feature-name\`
+2. Generate NestJS module:
+   \`\`\`bash
+   nest g module module/feature-name
+   \`\`\`
+3. Create controller, service, repository:
+   \`\`\`bash
+   nest g controller module/feature-name
+   nest g service module/feature-name
+   \`\`\`
+4. Create DTOs in \`dto/\` subdirectory
+5. Add repository if database operations needed
+6. Export from module providers
+
+### Database Changes
+
+1. Update \`prisma/schema.prisma\`
+2. Create migration:
+   \`\`\`bash
+   npm run prisma:migrate
+   \`\`\`
+3. Name migration descriptively (e.g., "add_products_table")
+4. Test migration: \`npm run prisma:reset\`
+
+## 🤝 Contributing
+
+1. Create feature branch: \`git checkout -b feature/your-feature\`
+2. Make changes and test: \`npm run test\`
+3. Commit with conventional format: \`git commit -m "feat: description"\`
+4. Push and create PR
+
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+## 🆘 Support
+
+For issues and questions:
+
+- Check existing GitHub issues
+- Create new issue with detailed description
+- Contact development team

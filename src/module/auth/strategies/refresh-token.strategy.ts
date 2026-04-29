@@ -4,14 +4,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { I18nService } from 'nestjs-i18n';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { DatabaseService } from 'src/common';
-
-export interface Payload {
-  sub: string;
-  version: number;
-  iat?: number;
-  exp?: number;
-}
+import { UserRepository } from 'src/module/user/user.repository';
+import { AuthenticatedUser, JwtRefreshPayload } from '../types/auth.types';
 
 export const jwtExtractor = (req: Request): string | null => {
   if (!req) return null;
@@ -41,7 +35,7 @@ export class JWTRefreshToken extends PassportStrategy(
 ) {
   constructor(
     private configService: ConfigService,
-    private databaseService: DatabaseService,
+    private userRepository: UserRepository,
     private i18nService: I18nService,
   ) {
     super({
@@ -51,10 +45,8 @@ export class JWTRefreshToken extends PassportStrategy(
     });
   }
 
-  async validate(payload: Payload) {
-    const user = await this.databaseService.user.findUnique({
-      where: { id: payload.sub },
-    });
+  async validate(payload: JwtRefreshPayload): Promise<AuthenticatedUser> {
+    const user = await this.userRepository.findById(payload.sub);
     if (!user || user.tokenVersion !== payload.version) {
       throw new UnauthorizedException(
         this.i18nService.t('user.verification.invalid_token'),

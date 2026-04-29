@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, Matches } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
-import { REGEX } from '../../../common/constant/regex';
-import { RequiredString } from '../../../common/helpers/validation/RequiredString.validation';
+import { REGEX } from '../../../common/helpers/constant/regex';
+import { RequiredString } from '../../../common/helpers/validation/required-string.validation';
 
 export class RegisterUserDto {
   @ApiProperty({

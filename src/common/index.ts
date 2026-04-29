@@ -1,17 +1,8 @@
 // DTOs
-export * from './dto/response.dto';
-export * from './dto/pagination.dto';
-export * from './dto/paginated-response.dto';
+export * from './dto';
 
-// Services
-export * from './database/database.service';
+// Services & Modules
+export * from './config';
 
-// Filters
-export * from './filters/http-exception.filter';
-
-// Interceptors
-export * from './interceptors/response.interceptor';
-
-// Regex
-
-export * from './constant/regex';
+// Filters, Interceptors, Helpers
+export * from './helpers';

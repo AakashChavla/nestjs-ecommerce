@@ -11,8 +11,8 @@ import {
   Matches,
 } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
-import { RequiredString } from 'src/common/helpers/validation/RequiredString.validation';
-import { REGEX } from '../../../common/constant/regex';
+import { RequiredString } from 'src/common/helpers/validation/required-string.validation';
+import { REGEX } from '../../../common/helpers/constant/regex';
 
 export class CreateAddressDto {
   @ApiProperty({

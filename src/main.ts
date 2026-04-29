@@ -1,13 +1,15 @@
 // src/main.ts
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { I18nValidationPipe } from 'nestjs-i18n';
+import { AppModule } from './app.module';
 import { MorganConfig } from './common/config/morgan/morgan.config';
+import { HttpExceptionFilter } from './common/helpers/filters/http-exception.filter';
+import { ResponseInterceptor } from './common/helpers/interceptors/response.interceptor';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
   // Configure Morgan HTTP request logging
@@ -19,9 +21,13 @@ async function bootstrap() {
   // Global prefix (optional)
   app.setGlobalPrefix('api/v1');
 
-  // Enable CORS with explicit configuration
+  // Enable CORS with allowlist from env
+  const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+    .split(',')
+    .map((origin) => origin.trim());
+
   app.enableCors({
-    origin: true, // Allow all origins in development
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-lang', 'Accept'],
@@ -64,7 +70,7 @@ async function bootstrap() {
   const port = process.env.PORT || 8080;
   await app.listen(port);
 
-  console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`Swagger is running on: http://localhost:${port}/api/docs`);
+  logger.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`Swagger is running on: http://localhost:${port}/api/docs`);
 }
 bootstrap();

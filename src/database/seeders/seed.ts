@@ -1,6 +1,6 @@
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
 import { Pool } from 'pg';
 import { seedCityStateCountry } from './city-state-country.seeders';
 

@@ -1,18 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
-import { DatabaseService } from 'src/common';
 import { I18nService } from 'nestjs-i18n';
-
-export interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
-  iat?: number;
-  exp?: number;
-}
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UserRepository } from 'src/module/user/user.repository';
+import { AuthenticatedUser, JwtAccessPayload } from '../types/auth.types';
 
 export const accessTokenExtractor = (req: Request): string | null => {
   if (!req) return null;
@@ -39,7 +32,7 @@ export const accessTokenExtractor = (req: Request): string | null => {
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private configService: ConfigService,
-    private databaseService: DatabaseService,
+    private userRepository: UserRepository,
     private i18nService: I18nService,
   ) {
     super({
@@ -49,11 +42,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtAccessPayload): Promise<AuthenticatedUser> {
     // This payload comes from the decoded JWT
-    const user = await this.databaseService.user.findFirst({
-      where: { id: payload.sub },
-    });
+    const user = await this.userRepository.findById(payload.sub);
 
     if (!user) {
       throw new UnauthorizedException(

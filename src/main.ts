@@ -22,12 +22,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   // Enable CORS with allowlist from env
-  const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? '*')
     .split(',')
-    .map((origin) => origin.trim());
+    .map((o) => o.trim());
 
   app.enableCors({
-    origin: corsOrigins,
+    origin: allowedOrigins.includes('*') ? true : allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-lang', 'Accept'],

@@ -1,0 +1,8 @@
+{
+  "retrieved_success": "Address retrieved successfully",
+  "all_retrieved_success": "Addresses retrieved successfully",
+  "updated_success": "Address updated successfully",
+  "deleted_success": "Address deleted successfully",
+  "not_found": "Address not found",
+  "city_not_found": "City not found"
+}

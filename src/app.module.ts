@@ -17,6 +17,7 @@ import { CommonModule } from './common/common.module';
 import { AddressModule } from './module/address/address.module';
 import { AuthModule } from './module/auth/auth.module';
 import { UserModule } from './module/user/user.module';
+import { ProductModule } from './module/product/product.module';
 
 @Module({
   imports: [
@@ -136,6 +137,7 @@ import { UserModule } from './module/user/user.module';
     UserModule,
     AuthModule,
     AddressModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [

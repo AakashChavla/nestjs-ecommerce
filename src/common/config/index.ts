@@ -6,3 +6,6 @@ export * from './mail/mail.module';
 export * from './mail/mail.service';
 export * from './morgan/morgan-environment.config';
 export * from './morgan/morgan.config';
+export * from './s3/s3.service';
+export * from './s3/s3.module';
+export * from './s3/file-validation.pipe';

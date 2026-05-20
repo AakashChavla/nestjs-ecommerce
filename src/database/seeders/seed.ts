@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import 'dotenv/config';
 import { Pool } from 'pg';
 import { seedCityStateCountry } from './city-state-country.seeders';
+import { seedCategories } from './category,seeders';
 
 async function main() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -13,6 +14,7 @@ async function main() {
 
   try {
     await seedCityStateCountry(prisma);
+    await seedCategories(prisma);
   } finally {
     await prisma.$disconnect();
     await pool.end();

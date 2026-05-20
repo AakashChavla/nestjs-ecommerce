@@ -19,6 +19,7 @@ import { AuthModule } from './module/auth/auth.module';
 import { UserModule } from './module/user/user.module';
 import { ProductModule } from './module/product/product.module';
 import 'multer';
+import { CategoryModule } from './module/category/category.module';
 
 @Module({
   imports: [
@@ -139,6 +140,7 @@ import 'multer';
     AuthModule,
     AddressModule,
     ProductModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [

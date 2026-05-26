@@ -2,7 +2,14 @@
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { RequiredString } from 'src/common/helpers/validation/required-string.validation';
 
@@ -14,16 +21,32 @@ export class CreateCategoryDto {
     required: true,
   })
   @RequiredString('Name', 2, 100)
-  name: string;
+  name!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'URL-safe slug (auto-generated if not provided)',
     example: 'smartphones',
     type: String,
-    required: true,
   })
-  @RequiredString('Slug', 2, 120)
-  slug: string;
+  @IsOptional()
+  @IsString({
+    message: i18nValidationMessage('validation.invalid', {
+      field: 'Slug',
+    }),
+  })
+  @MinLength(2, {
+    message: i18nValidationMessage('validation.min_character', {
+      field: 'Slug',
+      count: 2,
+    }),
+  })
+  @MaxLength(120, {
+    message: i18nValidationMessage('validation.max_character', {
+      field: 'Slug',
+      count: 120,
+    }),
+  })
+  slug?: string;
 
   @ApiPropertyOptional({
     description: 'Parent category UUID — omit for root categories',

@@ -10,11 +10,11 @@ export class CategoryRepository {
 
   // ── Create ───────────────────────────────────────────────────────────────
 
-  async create(dto: CreateCategoryDto) {
+  async create(dto: CreateCategoryDto, slug: string) {
     return this.databaseService.category.create({
       data: {
         name: dto.name,
-        slug: dto.slug,
+        slug,
         iconUrl: dto.iconUrl,
         isActive: dto.isActive ?? true,
         ...(dto.parentId ? { parent: { connect: { id: dto.parentId } } } : {}),

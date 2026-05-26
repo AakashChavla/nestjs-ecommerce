@@ -5,6 +5,10 @@ import {
 } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { ResponseDto } from 'src/common/dto/response.dto';
+import {
+  generateProductSlug,
+  generateUniqueSlug,
+} from 'src/common/helpers/slug.util';
 import { CategoryRepository } from './category.repository';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -17,23 +21,6 @@ export class CategoryService {
   ) {}
 
   // ── helpers ──────────────────────────────────────────────────────────────
-
-  private buildSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-  }
-
-  private async assertSlugFree(slug: string, excludeId?: string) {
-    const existing = await this.categoryRepo.findBySlug(slug);
-    if (existing && existing.id !== excludeId) {
-      throw new ConflictException(
-        this.i18n.t('category.slug_exists'),
-        'CATEGORY_SLUG_EXISTS',
-      );
-    }
-  }
 
   private async assertExists(id: string) {
     const cat = await this.categoryRepo.findById(id);
@@ -49,18 +36,18 @@ export class CategoryService {
   // ── API 1 — POST /categories ──────────────────────────────────────────────
 
   async create(dto: CreateCategoryDto) {
-    // auto-generate slug if not supplied
-    const slug = dto.slug ?? this.buildSlug(dto.name);
+    const slug = await generateUniqueSlug(
+      generateProductSlug(dto.slug ?? dto.name),
+      (candidate) => this.categoryRepo.findBySlug(candidate),
+    );
     dto.slug = slug;
-
-    await this.assertSlugFree(slug);
 
     // if parentId provided, make sure parent exists
     if (dto.parentId) {
       await this.assertExists(dto.parentId);
     }
 
-    const category = await this.categoryRepo.create(dto);
+    const category = await this.categoryRepo.create(dto, slug);
 
     return ResponseDto.success(
       this.i18n.t('category.created_success'),
@@ -111,11 +98,12 @@ export class CategoryService {
   async update(id: string, dto: UpdateCategoryDto) {
     await this.assertExists(id);
 
-    if (dto.slug) {
-      await this.assertSlugFree(dto.slug, id);
-    } else if (dto.name) {
-      dto.slug = this.buildSlug(dto.name);
-      await this.assertSlugFree(dto.slug, id);
+    if (dto.name || dto.slug) {
+      dto.slug = await generateUniqueSlug(
+        generateProductSlug(dto.slug ?? dto.name!),
+        (candidate) => this.categoryRepo.findBySlug(candidate),
+        id,
+      );
     }
 
     if (dto.parentId) {

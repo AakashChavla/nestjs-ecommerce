@@ -41,12 +41,12 @@
 
 This is a **modular, scalable NestJS REST API** for an e-commerce platform. It currently exposes:
 
-| Domain      | Status        | Notes                                      |
-|-------------|---------------|--------------------------------------------|
-| Auth        | Active        | JWT access + refresh tokens, email verify  |
-| User        | Active        | Registration, profile management           |
-| Address     | Active        | Polymorphic addresses, geocoding, map pick |
-| Product     | Scaffold only | Controller/service/repo stubs, not wired   |
+| Domain  | Status        | Notes                                      |
+| ------- | ------------- | ------------------------------------------ |
+| Auth    | Active        | JWT access + refresh tokens, email verify  |
+| User    | Active        | Registration, profile management           |
+| Address | Active        | Polymorphic addresses, geocoding, map pick |
+| Product | Scaffold only | Controller/service/repo stubs, not wired   |
 
 The application is a **JSON-only REST API**. No server-side rendering. Static files are served from `/static` (e.g., `Map.html` for the map picker UI).
 
@@ -54,28 +54,28 @@ The application is a **JSON-only REST API**. No server-side rendering. Static fi
 
 ## 2. Tech Stack & Versions
 
-| Layer              | Technology                    | Version       |
-|--------------------|-------------------------------|---------------|
-| Framework          | NestJS                        | 11.0.1        |
-| Runtime            | Node.js                       | ≥ 18          |
-| Language           | TypeScript                    | 5.x           |
-| Database           | PostgreSQL                    | ≥ 12          |
-| ORM                | Prisma                        | 7.3.0         |
-| Auth               | Passport + passport-jwt       | 11.x / 4.x    |
-| Token signing      | @nestjs/jwt                   | 11.x          |
-| Validation         | class-validator + class-transformer | 0.14.x  |
-| API docs           | @nestjs/swagger               | 11.x          |
-| i18n               | nestjs-i18n                   | 10.6.x        |
-| Rate limiting      | @nestjs/throttler             | 6.x           |
-| HTTP logging       | Morgan                        | 1.10.x        |
-| Email              | Nodemailer                    | 8.x           |
-| Maps               | Google Maps Geocoding API     | —             |
-| Object Storage     | AWS S3 SDK v3                 | 3.x           |
-| Password hashing   | bcrypt                        | 6.x           |
-| Linting            | ESLint + typescript-eslint    | 9.x           |
-| Formatting         | Prettier                      | 3.x           |
-| Testing            | Jest + ts-jest                | 30.x          |
-| Pre-commit         | Husky + lint-staged           | 9.x / 16.x    |
+| Layer            | Technology                          | Version    |
+| ---------------- | ----------------------------------- | ---------- |
+| Framework        | NestJS                              | 11.0.1     |
+| Runtime          | Node.js                             | ≥ 18       |
+| Language         | TypeScript                          | 5.x        |
+| Database         | PostgreSQL                          | ≥ 12       |
+| ORM              | Prisma                              | 7.3.0      |
+| Auth             | Passport + passport-jwt             | 11.x / 4.x |
+| Token signing    | @nestjs/jwt                         | 11.x       |
+| Validation       | class-validator + class-transformer | 0.14.x     |
+| API docs         | @nestjs/swagger                     | 11.x       |
+| i18n             | nestjs-i18n                         | 10.6.x     |
+| Rate limiting    | @nestjs/throttler                   | 6.x        |
+| HTTP logging     | Morgan                              | 1.10.x     |
+| Email            | Nodemailer                          | 8.x        |
+| Maps             | Google Maps Geocoding API           | —          |
+| Object Storage   | AWS S3 SDK v3                       | 3.x        |
+| Password hashing | bcrypt                              | 6.x        |
+| Linting          | ESLint + typescript-eslint          | 9.x        |
+| Formatting       | Prettier                            | 3.x        |
+| Testing          | Jest + ts-jest                      | 30.x       |
+| Pre-commit       | Husky + lint-staged                 | 9.x / 16.x |
 
 **Never downgrade a dependency without a team discussion.** Pin major versions in `package.json` using `^` (minor/patch upgrades allowed, major blocked).
 
@@ -272,22 +272,22 @@ module/<domain>/
 
 ## 7. Naming Conventions
 
-| Artifact              | Convention             | Example                        |
-|-----------------------|------------------------|--------------------------------|
-| Files                 | `kebab-case`           | `user.service.ts`              |
-| Classes               | `PascalCase`           | `UserService`                  |
-| Interfaces/Types      | `PascalCase`           | `AuthenticatedUser`            |
-| Variables/functions   | `camelCase`            | `getUserById`                  |
-| Constants             | `SCREAMING_SNAKE_CASE` | `AUTH_CONFIG`                  |
-| Enums                 | `PascalCase` (name), `UPPER_SNAKE` (values) | `UserRole.ADMIN` |
-| DB columns            | `snake_case`           | `password_hash`                |
-| Prisma model fields   | `camelCase`            | `passwordHash`                 |
-| DTO class names       | `<Action><Domain>Dto`  | `CreateAddressDto`             |
-| Guard class names     | `<Name>Guard`          | `JwtAuthGuard`                 |
-| Strategy class names  | `<Name>Strategy`       | `JwtStrategy`                  |
-| Decorator names       | `PascalCase` function  | `@CurrentUser()`, `@Roles()`   |
-| i18n keys             | `dot.notation`         | `user.verification.invalid_token` |
-| HTTP endpoints        | `kebab-case` plural    | `/auth/refresh-token`          |
+| Artifact             | Convention                                  | Example                           |
+| -------------------- | ------------------------------------------- | --------------------------------- |
+| Files                | `kebab-case`                                | `user.service.ts`                 |
+| Classes              | `PascalCase`                                | `UserService`                     |
+| Interfaces/Types     | `PascalCase`                                | `AuthenticatedUser`               |
+| Variables/functions  | `camelCase`                                 | `getUserById`                     |
+| Constants            | `SCREAMING_SNAKE_CASE`                      | `AUTH_CONFIG`                     |
+| Enums                | `PascalCase` (name), `UPPER_SNAKE` (values) | `UserRole.ADMIN`                  |
+| DB columns           | `snake_case`                                | `password_hash`                   |
+| Prisma model fields  | `camelCase`                                 | `passwordHash`                    |
+| DTO class names      | `<Action><Domain>Dto`                       | `CreateAddressDto`                |
+| Guard class names    | `<Name>Guard`                               | `JwtAuthGuard`                    |
+| Strategy class names | `<Name>Strategy`                            | `JwtStrategy`                     |
+| Decorator names      | `PascalCase` function                       | `@CurrentUser()`, `@Roles()`      |
+| i18n keys            | `dot.notation`                              | `user.verification.invalid_token` |
+| HTTP endpoints       | `kebab-case` plural                         | `/auth/refresh-token`             |
 
 ---
 
@@ -297,10 +297,10 @@ module/<domain>/
 
 The app uses **two JWT tokens**:
 
-| Token          | Strategy name        | Cookie name     | Expiry  | Secret env var                    |
-|----------------|----------------------|-----------------|---------|-----------------------------------|
-| Access Token   | `jwt`                | `access_token`  | 15m     | `JWT_ACCESS_SECRET_TOKEN`         |
-| Refresh Token  | `JWT-refresh-token`  | `refresh_token` | 7d      | `JWT_REFRESH_SECRET_TOKEN`        |
+| Token         | Strategy name       | Cookie name     | Expiry | Secret env var             |
+| ------------- | ------------------- | --------------- | ------ | -------------------------- |
+| Access Token  | `jwt`               | `access_token`  | 15m    | `JWT_ACCESS_SECRET_TOKEN`  |
+| Refresh Token | `JWT-refresh-token` | `refresh_token` | 7d     | `JWT_REFRESH_SECRET_TOKEN` |
 
 - Email verification uses a third JWT signed with `JWT_VERIFICATION_SECRET_TOKEN`, expiry 24h.
 - Token rotation is implemented via `tokenVersion` on the `User` model. Incrementing `tokenVersion` invalidates all existing refresh tokens for that user (logout, password change).
@@ -316,11 +316,11 @@ This is implemented in `accessTokenExtractor` and `jwtExtractor`. Never change t
 
 ### Guards
 
-| Guard            | Class             | Usage                                |
-|------------------|-------------------|--------------------------------------|
-| Access token     | `JwtAuthGuard`    | `@UseGuards(JwtAuthGuard)`           |
-| Refresh token    | `JwtRefreshGuard` | `@UseGuards(JwtRefreshGuard)`        |
-| Role-based       | `RoleGuard`       | `@UseGuards(JwtAuthGuard, RoleGuard)` + `@Roles(UserRole.ADMIN)` |
+| Guard         | Class             | Usage                                                            |
+| ------------- | ----------------- | ---------------------------------------------------------------- |
+| Access token  | `JwtAuthGuard`    | `@UseGuards(JwtAuthGuard)`                                       |
+| Refresh token | `JwtRefreshGuard` | `@UseGuards(JwtRefreshGuard)`                                    |
+| Role-based    | `RoleGuard`       | `@UseGuards(JwtAuthGuard, RoleGuard)` + `@Roles(UserRole.ADMIN)` |
 
 - Apply `JwtAuthGuard` globally (or per-controller) and use `@Public()` to opt out for public endpoints.
 - `RoleGuard` must always be used **together with** `JwtAuthGuard`, never standalone.
@@ -362,15 +362,15 @@ enum UserRole {
 
 ### HTTP Methods
 
-| Action            | Method   | Example                          |
-|-------------------|----------|----------------------------------|
-| List (paginated)  | `GET`    | `GET /addresses`                 |
-| Get single        | `GET`    | `GET /addresses/:id`             |
-| Create            | `POST`   | `POST /addresses`                |
-| Full update       | `PUT`    | `PUT /addresses/:id`             |
-| Partial update    | `PATCH`  | `PATCH /addresses/:id`           |
-| Delete            | `DELETE` | `DELETE /addresses/:id`          |
-| Action/RPC        | `POST`   | `POST /auth/refresh-token`       |
+| Action           | Method   | Example                    |
+| ---------------- | -------- | -------------------------- |
+| List (paginated) | `GET`    | `GET /addresses`           |
+| Get single       | `GET`    | `GET /addresses/:id`       |
+| Create           | `POST`   | `POST /addresses`          |
+| Full update      | `PUT`    | `PUT /addresses/:id`       |
+| Partial update   | `PATCH`  | `PATCH /addresses/:id`     |
+| Delete           | `DELETE` | `DELETE /addresses/:id`    |
+| Action/RPC       | `POST`   | `POST /auth/refresh-token` |
 
 ### Swagger Decorators (Required on Every Endpoint)
 
@@ -416,13 +416,23 @@ Use `@HttpCode(HttpStatus.OK)` explicitly when a `POST` should return 200 instea
 
 ```typescript
 export class CreateFooDto {
-  @ApiProperty({ description: '...', example: '...', type: String, required: true })
+  @ApiProperty({
+    description: '...',
+    example: '...',
+    type: String,
+    required: true,
+  })
   @RequiredString('Field Name', 2, 100)
   name: string;
 
   @ApiProperty({ description: '...', example: 'foo@bar.com', required: true })
   @RequiredString('Email', 5, 50)
-  @IsEmail({}, { message: i18nValidationMessage('validation.invalid', { field: 'Email' }) })
+  @IsEmail(
+    {},
+    {
+      message: i18nValidationMessage('validation.invalid', { field: 'Email' }),
+    },
+  )
   email: string;
 }
 ```
@@ -470,7 +480,7 @@ HttpException (NestJS)
   "message": "User not found",
   "timestamp": "2026-04-23T10:00:00.000Z",
   "path": "/user/123",
-  "errors": ["field-level validation error 1"]  // only for validation failures
+  "errors": ["field-level validation error 1"] // only for validation failures
 }
 ```
 
@@ -582,14 +592,14 @@ Repositories must return `{ data: T[], totalItems: number }`. Services build the
 
 HTTP request logging is handled by **Morgan**, configured in `src/common/config/morgan/`.
 
-| `HTTP_LOG_FORMAT` | Behavior                                      |
-|-------------------|-----------------------------------------------|
+| `HTTP_LOG_FORMAT` | Behavior                                              |
+| ----------------- | ----------------------------------------------------- |
 | `auto` (default)  | `dev` format in development, `combined` in production |
-| `dev`             | Colored short output                          |
-| `combined`        | Standard Apache combined log format           |
-| `short`           | Shorter than combined, includes response time |
-| `tiny`            | Minimal output                                |
-| `custom`          | Custom format defined in `morgan.config.ts`   |
+| `dev`             | Colored short output                                  |
+| `combined`        | Standard Apache combined log format                   |
+| `short`           | Shorter than combined, includes response time         |
+| `tiny`            | Minimal output                                        |
+| `custom`          | Custom format defined in `morgan.config.ts`           |
 
 **Security logging** (when `ENABLE_SECURITY_LOGGING=true`) logs authentication routes and error responses with extra detail.
 
@@ -692,6 +702,7 @@ npm run lint           # check and auto-fix
 ```
 
 Key rules enforced:
+
 - No `any` type without explicit suppression comment.
 - No unused variables.
 - Consistent import ordering.
@@ -784,6 +795,7 @@ Types: `feat`, `fix`, `chore`, `refactor`, `test`, `docs`, `style`, `perf`.
 ### Pre-commit Hook
 
 Husky runs `lint-staged` before every commit:
+
 - `*.ts` files → `eslint --fix` then `prettier --write`
 - `*.json`, `*.md` files → `prettier --write`
 
@@ -820,6 +832,7 @@ Follow this checklist when building a new domain (e.g., `Order`):
 1. **Create the folder**: `src/module/order/`
 
 2. **Generate files**:
+
    ```
    order.module.ts
    order.controller.ts
@@ -832,6 +845,7 @@ Follow this checklist when building a new domain (e.g., `Order`):
 3. **Update Prisma schema**: Add the `Order` model to `prisma/schema.prisma` following the schema rules (UUID id, snake_case columns, soft delete, proper indexes).
 
 4. **Create and apply migration**:
+
    ```bash
    npx prisma migrate dev --name add_order_table
    npx prisma generate
@@ -882,8 +896,8 @@ This section is the **living registry of every reusable utility, decorator, DTO,
 Location: `src/common/helpers/validation/`
 Barrel export: `src/common/helpers/index.ts`
 
-| Name | Signature | File | Description |
-|------|-----------|------|-------------|
+| Name              | Signature                                                               | File                            | Description                                                                                                                |
+| ----------------- | ----------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `@RequiredString` | `RequiredString(field: string, minLength?: number, maxLength?: number)` | `required-string.validation.ts` | Composes `@IsNotEmpty`, `@IsString`, `@MinLength`, `@MaxLength` with i18n messages. Use on any mandatory string DTO field. |
 
 ---
@@ -892,9 +906,9 @@ Barrel export: `src/common/helpers/index.ts`
 
 Location: `src/common/config/s3/`
 
-| Name | Signature | File | Description |
-|------|-----------|------|-------------|
-| `FileValidationPipe` | `new FileValidationPipe({ allowedMimeTypes, maxSizeBytes?, required? })` | `file-validation.pipe.ts` | Validates uploaded files for MIME type and size. Pass as argument to `@UploadedFile()`. Never do manual file validation in a controller or service.
+| Name                 | Signature                                                                | File                      | Description                                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FileValidationPipe` | `new FileValidationPipe({ allowedMimeTypes, maxSizeBytes?, required? })` | `file-validation.pipe.ts` | Validates uploaded files for MIME type and size. Pass as argument to `@UploadedFile()`. Never do manual file validation in a controller or service. |
 
 ---
 
@@ -902,11 +916,11 @@ Location: `src/common/config/s3/`
 
 Location: `src/module/auth/decorator/`
 
-| Name | Signature | File | Description |
-|------|-----------|------|-------------|
+| Name           | Signature                     | File                        | Description                                                                                      |
+| -------------- | ----------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
 | `@CurrentUser` | `CurrentUser(field?: string)` | `current-user.decorator.ts` | Extracts `request.user` or a specific field from it. Use in any authenticated controller method. |
-| `@Public` | `Public()` | `public.decorator.ts` | Marks an endpoint as unauthenticated, bypassing `JwtAuthGuard`. |
-| `@Roles` | `Roles(...roles: UserRole[])` | `role.decorator.ts` | Restricts an endpoint to one or more `UserRole` values. Must be paired with `RoleGuard`. |
+| `@Public`      | `Public()`                    | `public.decorator.ts`       | Marks an endpoint as unauthenticated, bypassing `JwtAuthGuard`.                                  |
+| `@Roles`       | `Roles(...roles: UserRole[])` | `role.decorator.ts`         | Restricts an endpoint to one or more `UserRole` values. Must be paired with `RoleGuard`.         |
 
 ---
 
@@ -915,11 +929,11 @@ Location: `src/module/auth/decorator/`
 Location: `src/module/auth/guards/`
 Exported from: `src/module/auth/auth.module.ts`
 
-| Name | Class | File | Description |
-|------|-------|------|-------------|
-| `JwtAuthGuard` | `JwtAuthGuard` | `access-token.guard.ts` | Validates access JWT. Respects `@Public()`. Apply at controller class or method level. |
-| `JwtRefreshGuard` | `JwtRefreshGuard` | `refresh-token.guard.ts` | Validates refresh JWT. Use only on the `POST /auth/refresh-token` endpoint. |
-| `RoleGuard` | `RoleGuard` | `role.guard.ts` | Role-based access control. Always used together with `JwtAuthGuard`. |
+| Name              | Class             | File                     | Description                                                                            |
+| ----------------- | ----------------- | ------------------------ | -------------------------------------------------------------------------------------- |
+| `JwtAuthGuard`    | `JwtAuthGuard`    | `access-token.guard.ts`  | Validates access JWT. Respects `@Public()`. Apply at controller class or method level. |
+| `JwtRefreshGuard` | `JwtRefreshGuard` | `refresh-token.guard.ts` | Validates refresh JWT. Use only on the `POST /auth/refresh-token` endpoint.            |
+| `RoleGuard`       | `RoleGuard`       | `role.guard.ts`          | Role-based access control. Always used together with `JwtAuthGuard`.                   |
 
 ---
 
@@ -927,8 +941,8 @@ Exported from: `src/module/auth/auth.module.ts`
 
 Location: `src/common/helpers/interceptors/`
 
-| Name | Class | File | Description |
-|------|-------|------|-------------|
+| Name                  | Class                    | File                      | Description                                                                                                       |
+| --------------------- | ------------------------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `ResponseInterceptor` | `ResponseInterceptor<T>` | `response.interceptor.ts` | Wraps all successful responses in `{ success, statusCode, message, data, timestamp, path }`. Registered globally. |
 
 ---
@@ -937,8 +951,8 @@ Location: `src/common/helpers/interceptors/`
 
 Location: `src/common/helpers/filters/`
 
-| Name | Class | File | Description |
-|------|-------|------|-------------|
+| Name                  | Class                 | File                       | Description                                                                                                                                                                                  |
+| --------------------- | --------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `HttpExceptionFilter` | `HttpExceptionFilter` | `http-exception.filter.ts` | Global catch-all filter. Normalizes all errors into `{ success: false, statusCode, message, timestamp, path, errors? }`. Handles i18n validation messages. Registered globally in `main.ts`. |
 
 ---
@@ -948,14 +962,15 @@ Location: `src/common/helpers/filters/`
 Location: `src/common/exceptions/`
 Barrel export: `src/common/exceptions/index.ts`
 
-| Name | HTTP Status | Error Code Default | File | When to Use |
-|------|-------------|-------------------|------|-------------|
-| `AppException` | Configurable | `INTERNAL_SERVER_ERROR` | `app.exception.ts` | Base class only — do not throw directly. |
-| `BusinessException` | 400 | `BUSINESS_ERROR` | `business.exception.ts` | Business rule violations, invalid state transitions. |
-| `ConflictException` | 409 | `CONFLICT` | `conflict.exception.ts` | Duplicate resources (email, unique fields). |
-| `NotFoundException` | 404 | `NOT_FOUND` | `not-found.exception.ts` | Record does not exist or soft-deleted. |
+| Name                | HTTP Status  | Error Code Default      | File                     | When to Use                                          |
+| ------------------- | ------------ | ----------------------- | ------------------------ | ---------------------------------------------------- |
+| `AppException`      | Configurable | `INTERNAL_SERVER_ERROR` | `app.exception.ts`       | Base class only — do not throw directly.             |
+| `BusinessException` | 400          | `BUSINESS_ERROR`        | `business.exception.ts`  | Business rule violations, invalid state transitions. |
+| `ConflictException` | 409          | `CONFLICT`              | `conflict.exception.ts`  | Duplicate resources (email, unique fields).          |
+| `NotFoundException` | 404          | `NOT_FOUND`             | `not-found.exception.ts` | Record does not exist or soft-deleted.               |
 
 **Usage pattern:**
+
 ```typescript
 throw new NotFoundException(
   this.i18nService.t('user.not_found'),
@@ -970,12 +985,12 @@ throw new NotFoundException(
 Location: `src/common/dto/`
 Barrel export: `src/common/dto/index.ts`
 
-| Name | File | Description |
-|------|------|-------------|
-| `PaginationDto` | `pagination.dto.ts` | Query DTO for paginated list endpoints. Provides `page` (default 1) and `limit` (default 10) with validation. Use as `@Query() pagination: PaginationDto`. |
-| `PaginatedResponseDto<T>` | `paginated-response.dto.ts` | Response wrapper for paginated data. Contains `items: T[]` and `meta: PaginationMetaDto`. |
-| `PaginationMetaDto` | `paginated-response.dto.ts` | Pagination metadata: `page`, `limit`, `totalItems`, `totalPages`, `itemsOnCurrentPage`, `hasNextPage`, `hasPreviousPage`. |
-| `ResponseDto<T>` | `response.dto.ts` | Typed wrapper for standard API responses (used for Swagger typing). |
+| Name                      | File                        | Description                                                                                                                                                |
+| ------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PaginationDto`           | `pagination.dto.ts`         | Query DTO for paginated list endpoints. Provides `page` (default 1) and `limit` (default 10) with validation. Use as `@Query() pagination: PaginationDto`. |
+| `PaginatedResponseDto<T>` | `paginated-response.dto.ts` | Response wrapper for paginated data. Contains `items: T[]` and `meta: PaginationMetaDto`.                                                                  |
+| `PaginationMetaDto`       | `paginated-response.dto.ts` | Pagination metadata: `page`, `limit`, `totalItems`, `totalPages`, `itemsOnCurrentPage`, `hasNextPage`, `hasPreviousPage`.                                  |
+| `ResponseDto<T>`          | `response.dto.ts`           | Typed wrapper for standard API responses (used for Swagger typing).                                                                                        |
 
 ---
 
@@ -983,28 +998,28 @@ Barrel export: `src/common/dto/index.ts`
 
 Location: `src/common/helpers/constant/`
 
-| Name | File | Description |
-|------|------|-------------|
+| Name             | File       | Description                                                                                                |
+| ---------------- | ---------- | ---------------------------------------------------------------------------------------------------------- |
 | `REGEX` (object) | `regex.ts` | Shared regular expressions. Add new regex patterns here — never inline regex literals in DTOs or services. |
 
 Location: `src/module/auth/constants/`
 
-| Name | File | Description |
-|------|------|-------------|
-| `TokenType` (enum) | `auth.constants.ts` | `EMAIL_VERIFICATION`, `PASSWORD_RESET` — type discriminator for JWT verification tokens. |
+| Name                   | File                | Description                                                                                                       |
+| ---------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `TokenType` (enum)     | `auth.constants.ts` | `EMAIL_VERIFICATION`, `PASSWORD_RESET` — type discriminator for JWT verification tokens.                          |
 | `DEFAULT_TOKEN_EXPIRY` | `auth.constants.ts` | Default expiry values: `ACCESS = '15m'`, `REFRESH = '7d'`, `EMAIL_VERIFICATION = '24h'`, `PASSWORD_RESET = '1h'`. |
-| `AUTH_CONFIG` | `auth.constants.ts` | `BCRYPT_ROUNDS = 10`. Reference this instead of hardcoding the salt rounds. |
+| `AUTH_CONFIG`          | `auth.constants.ts` | `BCRYPT_ROUNDS = 10`. Reference this instead of hardcoding the salt rounds.                                       |
 
 Location: `src/common/config/s3/`
 
-| Name | File | Description |
-|------|------|-------------|
-| `FILE_LIMITS` | `file-validation.pipe.ts` | Byte-size constants: `ONE_MB`, `TWO_MB`, `FIVE_MB`, `TEN_MB`, `FIFTY_MB`, `TWO_HUNDRED_MB`, `FIVE_HUNDRED_MB`. Use instead of magic numbers for size limits. |
-| `ALLOWED_IMAGE_TYPES` | `file-validation.pipe.ts` | `['image/jpeg', 'image/png', 'image/webp', 'image/gif']` — use for any image upload endpoint. |
-| `ALLOWED_DOCUMENT_TYPES` | `file-validation.pipe.ts` | `['application/pdf', 'application/msword', ...]` — use for document upload endpoints. |
-| `ALLOWED_VIDEO_TYPES` | `file-validation.pipe.ts` | All accepted video formats: MP4, WebM, QuickTime, AVI, MPEG, OGG. Use when a transcoding pipeline is in place. |
-| `ALLOWED_VIDEO_TYPES_STRICT` | `file-validation.pipe.ts` | `['video/mp4', 'video/webm']` only. Use when there is NO transcoding pipeline — these play natively in all browsers. |
-| `S3_FOLDERS` | `file-validation.pipe.ts` | Central folder-key templates for every entity type. Use `buildS3Folder()` to fill in the ID placeholder. Never hardcode S3 folder paths in services or controllers. |
+| Name                         | File                      | Description                                                                                                                                                         |
+| ---------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FILE_LIMITS`                | `file-validation.pipe.ts` | Byte-size constants: `ONE_MB`, `TWO_MB`, `FIVE_MB`, `TEN_MB`, `FIFTY_MB`, `TWO_HUNDRED_MB`, `FIVE_HUNDRED_MB`. Use instead of magic numbers for size limits.        |
+| `ALLOWED_IMAGE_TYPES`        | `file-validation.pipe.ts` | `['image/jpeg', 'image/png', 'image/webp', 'image/gif']` — use for any image upload endpoint.                                                                       |
+| `ALLOWED_DOCUMENT_TYPES`     | `file-validation.pipe.ts` | `['application/pdf', 'application/msword', ...]` — use for document upload endpoints.                                                                               |
+| `ALLOWED_VIDEO_TYPES`        | `file-validation.pipe.ts` | All accepted video formats: MP4, WebM, QuickTime, AVI, MPEG, OGG. Use when a transcoding pipeline is in place.                                                      |
+| `ALLOWED_VIDEO_TYPES_STRICT` | `file-validation.pipe.ts` | `['video/mp4', 'video/webm']` only. Use when there is NO transcoding pipeline — these play natively in all browsers.                                                |
+| `S3_FOLDERS`                 | `file-validation.pipe.ts` | Central folder-key templates for every entity type. Use `buildS3Folder()` to fill in the ID placeholder. Never hardcode S3 folder paths in services or controllers. |
 
 ---
 
@@ -1012,9 +1027,21 @@ Location: `src/common/config/s3/`
 
 Location: `src/common/config/s3/`
 
-| Name | Signature | File | Description |
-|------|-----------|------|-------------|
+| Name            | Signature                                                                  | File                      | Description                                                                                                                  |
+| --------------- | -------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `buildS3Folder` | `buildS3Folder(template: string, placeholder: string, id: string): string` | `file-validation.pipe.ts` | Replaces `{placeholder}` in an `S3_FOLDERS` template with a real entity ID. Always use this instead of string concatenation. |
+
+---
+
+### 25.8b Helper Functions (Common)
+
+Location: `src/common/helpers/`
+Barrel export: `src/common/helpers/index.ts`
+
+| Name                  | Signature                                                                                                                    | File           | Description                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------- |
+| `generateProductSlug` | `generateProductSlug(name: string): string`                                                                                  | `slug.util.ts` | Normalizes a product name into a URL-safe base slug.                                |
+| `generateUniqueSlug`  | `generateUniqueSlug(base: string, existsFn: (candidate: string) => Promise<T \| null>, excludeId?: string): Promise<string>` | `slug.util.ts` | Appends numeric suffixes to avoid slug collisions. Use for product slug generation. |
 
 ---
 
@@ -1022,20 +1049,20 @@ Location: `src/common/config/s3/`
 
 Location: `src/module/auth/types/`
 
-| Name | File | Description |
-|------|------|-------------|
-| `JwtAccessPayload` | `auth.types.ts` | Shape of the decoded access JWT payload: `sub`, `email`, `role`. |
-| `JwtRefreshPayload` | `auth.types.ts` | Shape of the decoded refresh JWT payload: `sub`, `version`. |
-| `JwtVerificationPayload` | `auth.types.ts` | Shape of the email verification token payload: `userId`, `type`. |
-| `AuthenticatedUser` | `auth.types.ts` | Shape of `request.user` after JWT validation: `userId`, `email`, `role`, `tokenVersion?`. Use as the type for `@CurrentUser()` return values. |
+| Name                     | File            | Description                                                                                                                                   |
+| ------------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JwtAccessPayload`       | `auth.types.ts` | Shape of the decoded access JWT payload: `sub`, `email`, `role`.                                                                              |
+| `JwtRefreshPayload`      | `auth.types.ts` | Shape of the decoded refresh JWT payload: `sub`, `version`.                                                                                   |
+| `JwtVerificationPayload` | `auth.types.ts` | Shape of the email verification token payload: `userId`, `type`.                                                                              |
+| `AuthenticatedUser`      | `auth.types.ts` | Shape of `request.user` after JWT validation: `userId`, `email`, `role`, `tokenVersion?`. Use as the type for `@CurrentUser()` return values. |
 
 Location: `src/common/config/s3/`
 
-| Name | File | Description |
-|------|------|-------------|
-| `UploadResult` | `s3.service.ts` | Return type of `upload()` and `uploadLarge()`: `{ key, url, bucket, size, mimeType }`. Always store `key` in the database — never store the full URL, as it can change. |
-| `PresignedUrlResult` | `s3.service.ts` | Return type of `getPresignedUrl()` and `getPresignedUploadUrl()`: `{ url, expiresInSeconds }`. |
-| `FileValidationOptions` | `file-validation.pipe.ts` | Config interface for `FileValidationPipe`: `{ allowedMimeTypes, maxSizeBytes?, required? }`. |
+| Name                    | File                      | Description                                                                                                                                                             |
+| ----------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `UploadResult`          | `s3.service.ts`           | Return type of `upload()` and `uploadLarge()`: `{ key, url, bucket, size, mimeType }`. Always store `key` in the database — never store the full URL, as it can change. |
+| `PresignedUrlResult`    | `s3.service.ts`           | Return type of `getPresignedUrl()` and `getPresignedUploadUrl()`: `{ url, expiresInSeconds }`.                                                                          |
+| `FileValidationOptions` | `file-validation.pipe.ts` | Config interface for `FileValidationPipe`: `{ allowedMimeTypes, maxSizeBytes?, required? }`.                                                                            |
 
 ---
 
@@ -1043,12 +1070,12 @@ Location: `src/common/config/s3/`
 
 These services are provided by `CommonModule` and available to any feature module that imports it.
 
-| Name | File | Description |
-|------|------|-------------|
-| `DatabaseService` | `src/common/config/database/database.service.ts` | Prisma client wrapper. Inject this into every repository — never import `PrismaClient` directly. |
-| `MailService` | `src/common/config/mail/mail.service.ts` | Nodemailer wrapper. Provides `sendMail()` and template-based methods. |
-| `GoogleMapsService` | `src/common/config/google-map/google-maps.service.ts` | Geocoding and reverse-geocoding via Google Maps API. |
-| `S3AwsService` | `src/common/config/s3/s3.service.ts` | AWS S3 service. Methods: `upload()` (single-request, images/docs), `uploadLarge()` (multipart, always use for videos), `getPresignedUrl()`, `getPresignedUploadUrl()`, `delete()`, `deleteMany()`, `exists()`, `getPublicUrl()`, `buildKey()`. Inject from `CommonModule`. |
+| Name                | File                                                  | Description                                                                                                                                                                                                                                                                |
+| ------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DatabaseService`   | `src/common/config/database/database.service.ts`      | Prisma client wrapper. Inject this into every repository — never import `PrismaClient` directly.                                                                                                                                                                           |
+| `MailService`       | `src/common/config/mail/mail.service.ts`              | Nodemailer wrapper. Provides `sendMail()` and template-based methods.                                                                                                                                                                                                      |
+| `GoogleMapsService` | `src/common/config/google-map/google-maps.service.ts` | Geocoding and reverse-geocoding via Google Maps API.                                                                                                                                                                                                                       |
+| `S3AwsService`      | `src/common/config/s3/s3.service.ts`                  | AWS S3 service. Methods: `upload()` (single-request, images/docs), `uploadLarge()` (multipart, always use for videos), `getPresignedUrl()`, `getPresignedUploadUrl()`, `delete()`, `deleteMany()`, `exists()`, `getPublicUrl()`, `buildKey()`. Inject from `CommonModule`. |
 
 ---
 
@@ -1058,9 +1085,9 @@ Location: `src/common/config/mail/mail.template.ts`
 
 All email HTML is defined as TypeScript functions in this file. Do not create separate template files.
 
-| Function Name | Description |
-|---------------|-------------|
-| *(add rows as templates are implemented)* | |
+| Function Name                             | Description |
+| ----------------------------------------- | ----------- |
+| _(add rows as templates are implemented)_ |             |
 
 ---
 
@@ -1068,10 +1095,10 @@ All email HTML is defined as TypeScript functions in this file. Do not create se
 
 Location: `src/module/auth/strategies/`
 
-| Name | Strategy ID | File | Description |
-|------|-------------|------|-------------|
-| `JwtStrategy` | `'jwt'` | `access-token.strategy.ts` | Validates access tokens. Extracts from cookie first, then `Authorization: Bearer`. Attaches `AuthenticatedUser` to `request.user`. |
-| `JWTRefreshToken` | `'JWT-refresh-token'` | `refresh-token.strategy.ts` | Validates refresh tokens. Same extraction order. Verifies `tokenVersion` against the database. |
+| Name              | Strategy ID           | File                        | Description                                                                                                                        |
+| ----------------- | --------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `JwtStrategy`     | `'jwt'`               | `access-token.strategy.ts`  | Validates access tokens. Extracts from cookie first, then `Authorization: Bearer`. Attaches `AuthenticatedUser` to `request.user`. |
+| `JWTRefreshToken` | `'JWT-refresh-token'` | `refresh-token.strategy.ts` | Validates refresh tokens. Same extraction order. Verifies `tokenVersion` against the database.                                     |
 
 ---
 
@@ -1081,10 +1108,10 @@ Location: `src/module/auth/strategies/`
 
 These are exported standalone functions — reuse them if a custom strategy or middleware needs to extract tokens the same way.
 
-| Name | File | Description |
-|------|------|-------------|
-| `accessTokenExtractor` | `access-token.strategy.ts` | Extracts access JWT: cookie → Bearer header. Returns `string \| null`. |
-| `jwtExtractor` | `refresh-token.strategy.ts` | Extracts refresh JWT: cookie → Bearer header. Returns `string \| null`. |
+| Name                   | File                        | Description                                                             |
+| ---------------------- | --------------------------- | ----------------------------------------------------------------------- |
+| `accessTokenExtractor` | `access-token.strategy.ts`  | Extracts access JWT: cookie → Bearer header. Returns `string \| null`.  |
+| `jwtExtractor`         | `refresh-token.strategy.ts` | Extracts refresh JWT: cookie → Bearer header. Returns `string \| null`. |
 
 ---
 
@@ -1101,4 +1128,4 @@ If you are an AI assistant completing a task and you created something reusable,
 
 ---
 
-*Last updated: May 2026 — keep this document in sync with the codebase.*
+_Last updated: May 2026 — keep this document in sync with the codebase._

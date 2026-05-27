@@ -1,0 +1,23 @@
+{
+  "registration": {
+    "success": "User registered successfully",
+    "seller_success": "Seller registered successfully",
+    "email_exists": "User with this email already exists"
+  },
+  "verification": {
+    "already_verified": "Email is already verified",
+    "success": "Email verified successfully",
+    "token_expired": "Verification link has expired. Please request a new verification email.",
+    "invalid_token": "Invalid verification token",
+    "user_not_found": "User not found"
+  },
+  "auth": {
+    "invalid_credential": "Invalid Email And Password",
+    "login_success": "Login Successfull",
+    "logout_success": "Logged out successfully",
+    "token_refreshed": "Access token refreshed successfully"
+  },
+  "profile": {
+    "retrieved_success": "Profile retrieved successfully"
+  }
+}

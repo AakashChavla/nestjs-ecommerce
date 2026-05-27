@@ -1,0 +1,17 @@
+{
+  "created_success": "Product created successfully",
+  "retrieved_success": "Product retrieved successfully",
+  "all_retrieved_success": "Products retrieved successfully",
+  "updated_success": "Product updated successfully",
+  "deleted_success": "Product deleted successfully",
+  "not_found": "Product not found",
+  "category_not_found": "Category not found",
+  "price_exceeds_mrp": "Selling price cannot exceed MRP",
+  "not_owner": "You do not have permission to modify this product",
+  "image_uploaded_success": "Product image uploaded successfully",
+  "image_deleted_success": "Product image deleted successfully",
+  "image_not_found": "Product image not found",
+  "variant_added_success": "Product variant added successfully",
+  "variant_updated_success": "Product variant updated successfully",
+  "variant_not_found": "Product variant not found"
+}

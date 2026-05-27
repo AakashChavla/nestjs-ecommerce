@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Select Location</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f5f5f5;
+      }
+
+      /* ── Top bar ── */
+      .top-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,.1);
+        z-index: 10;
+      }
+
+      #search-input {
+        flex: 1;
+        padding: 10px 14px;
+        font-size: 14px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color .2s;
+      }
+      #search-input:focus { border-color: #4285f4; }
+
+      /* ── Map ── */
+      #map { flex: 1; width: 100%; }
+
+      /* ── Bottom panel ── */
+      .bottom-panel {
+        background: #fff;
+        padding: 16px;
+        box-shadow: 0 -2px 8px rgba(0,0,0,.1);
+        z-index: 10;
+        max-height: 55vh;
+        overflow-y: auto;
+      }
+
+      /* ── Coordinates row ── */
+      .coords-row { display: flex; gap: 12px; margin-bottom: 10px; }
+      .coord-field { flex: 1; }
+      .coord-field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        margin-bottom: 4px;
+      }
+      .coord-field input {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 14px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 6px;
+        background: #f9fafb;
+        outline: none;
+      }
+
+      /* ── Formatted address pill ── */
+      #formatted-address {
+        font-size: 13px;
+        color: #374151;
+        min-height: 18px;
+        margin-bottom: 14px;
+        padding: 8px 10px;
+        background: #f3f4f6;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+      }
+
+      /* ── Step divider ── */
+      .step-divider {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 14px 0 10px;
+      }
+      .step-divider hr { flex: 1; border: none; border-top: 1px solid #e5e7eb; }
+      .step-divider span { font-size: 12px; font-weight: 600; color: #6b7280; white-space: nowrap; }
+
+      /* ── Address form ── */
+      #address-form { display: none; }
+      #address-form.visible { display: block; }
+
+      .form-row { display: flex; gap: 12px; margin-bottom: 10px; }
+      .form-field { flex: 1; }
+      .form-field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        margin-bottom: 4px;
+      }
+      .form-field input,
+      .form-field select {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 14px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 6px;
+        background: #fff;
+        outline: none;
+        transition: border-color .2s;
+      }
+      .form-field input:focus,
+      .form-field select:focus { border-color: #4285f4; }
+      .form-field input.error,
+      .form-field select.error { border-color: #ef4444; }
+
+      .form-field .hint {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 3px;
+      }
+
+      /* ── Buttons ── */
+      .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .2s;
+        margin-top: 6px;
+      }
+      .btn-primary { background: #4285f4; color: #fff; }
+      .btn-primary:hover { background: #3367d6; }
+      .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+      .btn-success { background: #16a34a; color: #fff; }
+      .btn-success:hover { background: #15803d; }
+      .btn-success:disabled { background: #9ca3af; cursor: not-allowed; }
+
+      .status-msg {
+        font-size: 12px;
+        color: #9ca3af;
+        text-align: center;
+        margin-top: 8px;
+      }
+      .status-msg.error-msg { color: #ef4444; }
+      .status-msg.success-msg { color: #16a34a; }
+
+      /* spinner */
+      .spinner {
+        display: inline-block;
+        width: 14px; height: 14px;
+        border: 2px solid rgba(255,255,255,.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .6s linear infinite;
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+
+  <body>
+    <!-- Search bar -->
+    <div class="top-bar">
+      <input id="search-input" type="text" placeholder="Search for an address…" autocomplete="off" />
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Bottom panel -->
+    <div class="bottom-panel">
+
+      <!-- Coordinates -->
+      <div class="coords-row">
+        <div class="coord-field">
+          <label>Latitude</label>
+          <input id="lat-input" type="text" readonly placeholder="—" />
+        </div>
+        <div class="coord-field">
+          <label>Longitude</label>
+          <input id="lng-input" type="text" readonly placeholder="—" />
+        </div>
+      </div>
+
+      <!-- Reverse-geocoded address -->
+      <div id="formatted-address">Pin a location or search above</div>
+
+      <!-- Confirm pin location button -->
+      <button id="confirm-btn" class="btn btn-primary" disabled>Confirm Location</button>
+
+      <!-- ── Editable address form (shown after pin confirmed) ── -->
+      <div id="address-form">
+        <div class="step-divider">
+          <hr />
+          <span>✏️ Fill in Address Details</span>
+          <hr />
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Address Line 1 *</label>
+            <input id="f-line1" type="text" placeholder="House / Flat / Building no." maxlength="255" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Address Line 2</label>
+            <input id="f-line2" type="text" placeholder="Street, Area (optional)" maxlength="255" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Landmark</label>
+            <input id="f-landmark" type="text" placeholder="Near bus stop, temple…" maxlength="255" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Pincode *</label>
+            <input id="f-pincode" type="text" placeholder="e.g. 380001" maxlength="20" />
+          </div>
+          <div class="form-field">
+            <label>Address Type</label>
+            <select id="f-type">
+              <option value="HOME">🏠 Home</option>
+              <option value="OFFICE">🏢 Office</option>
+              <option value="BILLING">💳 Billing</option>
+              <option value="SHIPPING">📦 Shipping</option>
+              <option value="OTHER">📍 Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Country *</label>
+            <input id="f-country" type="text" readonly placeholder="Detected from map" />
+          </div>
+          <div class="form-field">
+            <label>State *</label>
+            <input id="f-state" type="text" readonly placeholder="Detected from map" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>City *</label>
+            <input id="f-city" type="text" readonly placeholder="Detected from map" />
+            <div class="hint" id="f-city-id-hint"></div>
+          </div>
+          <div class="form-field">
+            <label>Label (optional)</label>
+            <input id="f-label" type="text" placeholder="e.g. Mom's house" maxlength="50" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Contact Name</label>
+            <input id="f-contact-name" type="text" placeholder="Person at this address" maxlength="100" />
+          </div>
+          <div class="form-field">
+            <label>Contact Phone</label>
+            <input id="f-contact-phone" type="text" placeholder="+91XXXXXXXXXX" maxlength="20" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field" style="flex-direction:row;align-items:center;display:flex;gap:8px;padding-top:20px;">
+            <input id="f-default" type="checkbox" style="width:auto;" />
+            <label style="text-transform:none;font-size:13px;font-weight:500;color:#374151;" for="f-default">Set as default address</label>
+          </div>
+        </div>
+
+        <button id="save-btn" class="btn btn-success" disabled>Save Address</button>
+      </div>
+
+      <p class="status-msg" id="status-msg"></p>
+    </div>
+
+    <!-- ── Google Maps ── -->
+    <script>
+      /**
+       * GOOGLE_MAPS_API_KEY is injected by the backend at serve time, e.g.:
+       *   res.render('map', { apiKey: process.env.GOOGLE_MAPS_API_KEY })
+       * For static file serving, replace the empty string below with your key.
+       */
+      const GOOGLE_MAPS_API_KEY = '';
+
+      const mapsScriptUrl = new URL('https://maps.googleapis.com/maps/api/js');
+      mapsScriptUrl.searchParams.set('key', GOOGLE_MAPS_API_KEY);
+      mapsScriptUrl.searchParams.set('libraries', 'places');
+      mapsScriptUrl.searchParams.set('callback', 'initMap');
+
+      const mapsScript = document.createElement('script');
+      mapsScript.src = mapsScriptUrl.toString();
+      mapsScript.async = true;
+      mapsScript.defer = true;
+      document.head.appendChild(mapsScript);
+    </script>
+
+    <script>
+      /* ── Config ── */
+      /**
+       * Base URL of your NestJS API.
+       * Adjust to match your deployed environment, e.g. 'https://api.example.com/api/v1'
+       */
+      const API_BASE = 'http://localhost:8080/api/v1';
+
+      /* ── State ── */
+      let map, marker, geocoder;
+      let selectedLat = null;
+      let selectedLng = null;
+      let resolvedCityId = null;   // UUID returned by /address/resolve-coordinates → matched from DB
+
+      /* ── DOM refs ── */
+      const latInput        = document.getElementById('lat-input');
+      const lngInput        = document.getElementById('lng-input');
+      const addressDiv      = document.getElementById('formatted-address');
+      const confirmBtn      = document.getElementById('confirm-btn');
+      const addressForm     = document.getElementById('address-form');
+      const saveBtn         = document.getElementById('save-btn');
+      const statusMsg       = document.getElementById('status-msg');
+      const searchInput     = document.getElementById('search-input');
+
+      /* form fields */
+      const fLine1        = document.getElementById('f-line1');
+      const fLine2        = document.getElementById('f-line2');
+      const fLandmark     = document.getElementById('f-landmark');
+      const fPincode      = document.getElementById('f-pincode');
+      const fType         = document.getElementById('f-type');
+      const fCountry      = document.getElementById('f-country');
+      const fState        = document.getElementById('f-state');
+      const fCity         = document.getElementById('f-city');
+      const fCityIdHint   = document.getElementById('f-city-id-hint');
+      const fLabel        = document.getElementById('f-label');
+      const fContactName  = document.getElementById('f-contact-name');
+      const fContactPhone = document.getElementById('f-contact-phone');
+      const fDefault      = document.getElementById('f-default');
+
+      /* ── Google Maps init ── */
+      function initMap() {
+        geocoder = new google.maps.Geocoder();
+
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: { lat: 20.5937, lng: 78.9629 }, // India
+          zoom: 5,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
+        });
+
+        marker = new google.maps.Marker({
+          map,
+          draggable: true,
+          visible: false,
+          title: 'Drag to adjust',
+        });
+
+        map.addListener('click', (e) => {
+          placeMarker(e.latLng);
+          reverseGeocodeClient(e.latLng);
+        });
+
+        marker.addListener('dragend', (e) => {
+          reverseGeocodeClient(e.latLng);
+          updateCoordFields(e.latLng.lat(), e.latLng.lng());
+        });
+
+        const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+          fields: ['geometry', 'formatted_address', 'address_components'],
+        });
+
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (!place.geometry?.location) return;
+
+          map.setCenter(place.geometry.location);
+          map.setZoom(17);
+          placeMarker(place.geometry.location);
+          updateCoordFields(place.geometry.location.lat(), place.geometry.location.lng());
+          addressDiv.textContent = place.formatted_address || '';
+
+          // Pre-fill location fields from Google's address_components
+          prefillFromComponents(place.address_components || []);
+        });
+      }
+
+      /* ── Helpers ── */
+      function placeMarker(latLng) {
+        marker.setPosition(latLng);
+        marker.setVisible(true);
+      }
+
+      function updateCoordFields(lat, lng) {
+        selectedLat = lat;
+        selectedLng = lng;
+        latInput.value = lat.toFixed(7);
+        lngInput.value = lng.toFixed(7);
+        confirmBtn.disabled = false;
+      }
+
+      /* Client-side reverse geocode (for map click / drag) */
+      function reverseGeocodeClient(latLng) {
+        addressDiv.textContent = 'Fetching address…';
+        geocoder.geocode({ location: latLng }, (results, status) => {
+          if (status === 'OK' && results[0]) {
+            addressDiv.textContent = results[0].formatted_address;
+            prefillFromComponents(results[0].address_components || []);
+          } else {
+            addressDiv.textContent = 'Address not found';
+          }
+        });
+        updateCoordFields(latLng.lat(), latLng.lng());
+      }
+
+      /**
+       * Parse Google address_components and pre-fill Country / State / City.
+       * Pincode pre-fill is intentional — user can correct it.
+       */
+      function prefillFromComponents(components) {
+        let country = '', state = '', city = '', pincode = '', route = '', streetNumber = '';
+
+        components.forEach((c) => {
+          const types = c.types;
+          if (types.includes('country'))                country     = c.long_name;
+          if (types.includes('administrative_area_level_1')) state  = c.long_name;
+          if (types.includes('locality'))               city        = c.long_name;
+          if (types.includes('sublocality_level_1') && !city) city  = c.long_name;
+          if (types.includes('postal_code'))            pincode     = c.long_name;
+          if (types.includes('route'))                  route       = c.long_name;
+          if (types.includes('street_number'))          streetNumber = c.long_name;
+        });
+
+        fCountry.value = country;
+        fState.value   = state;
+        fCity.value    = city;
+
+        if (pincode && !fPincode.value) fPincode.value = pincode;
+
+        const streetLine = [streetNumber, route].filter(Boolean).join(' ');
+        if (streetLine && !fLine1.value) fLine1.value = streetLine;
+
+        // Reset cityId — will be resolved server-side via resolve-coordinates
+        resolvedCityId = null;
+        fCityIdHint.textContent = '';
+        saveBtn.disabled = true;
+      }
+
+      /* ── Confirm pin → call server resolve-coordinates → prefill cityId ── */
+      confirmBtn.addEventListener('click', async () => {
+        if (selectedLat === null || selectedLng === null) return;
+
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner"></span>Resolving…';
+        setStatus('', '');
+
+        try {
+          /**
+           * GET /address/map
+           * This is just to confirm the location and reveal the form.
+           * We also call resolve-coordinates to get the server-matched cityId.
+           */
+          const res = await fetch(`${API_BASE}/address/resolve-coordinates`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // The JWT token is read from the cookie automatically by the browser
+              // OR pass it explicitly if using localStorage:
+              // 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            },
+            credentials: 'include', // sends httpOnly cookie if present
+            body: JSON.stringify({ latitude: selectedLat, longitude: selectedLng }),
+          });
+
+          const json = await res.json();
+
+          if (!res.ok) throw new Error(json?.message || 'Failed to resolve location');
+
+          const data = json?.data ?? json;
+
+          // data.cityId comes from the server-side match against the cities table
+          if (data.cityId) {
+            resolvedCityId = data.cityId;
+            fCityIdHint.textContent = `City ID: ${data.cityId}`;
+          }
+
+          if (data.city)    fCity.value    = data.city;
+          if (data.state)   fState.value   = data.state;
+          if (data.country) fCountry.value = data.country;
+
+          // Show form
+          addressForm.classList.add('visible');
+          saveBtn.disabled = false;
+
+          confirmBtn.textContent = '✓ Location Confirmed — update if needed';
+          confirmBtn.disabled = false;
+          setStatus('Location confirmed. Fill in the form below and save.', '');
+
+        } catch (err) {
+          confirmBtn.textContent = 'Confirm Location';
+          confirmBtn.disabled = false;
+          setStatus('⚠ ' + err.message, 'error-msg');
+        }
+      });
+
+      /* ── Save button → POST /address/save-from-map ── */
+      saveBtn.addEventListener('click', async () => {
+        if (!validateForm()) return;
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner"></span>Saving…';
+        setStatus('', '');
+
+        const payload = {
+          addressLine1:  fLine1.value.trim(),
+          addressLine2:  fLine2.value.trim() || undefined,
+          landmark:      fLandmark.value.trim() || undefined,
+          pincode:       fPincode.value.trim(),
+          addressType:   fType.value,
+          cityId:        resolvedCityId,
+          latitude:      selectedLat,
+          longitude:     selectedLng,
+          label:         fLabel.value.trim() || undefined,
+          contactName:   fContactName.value.trim() || undefined,
+          contactPhone:  fContactPhone.value.trim() || undefined,
+          isDefault:     fDefault.checked,
+        };
+
+        try {
+          const res = await fetch(`${API_BASE}/address/save-from-map`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload),
+          });
+
+          const json = await res.json();
+
+          if (!res.ok) throw new Error(json?.message || 'Failed to save address');
+
+          saveBtn.textContent = '✅ Saved!';
+          setStatus('Address saved successfully.', 'success-msg');
+
+          // Notify parent window (if embedded in iframe)
+          window.parent.postMessage(
+            { type: 'ADDRESS_SAVED', address: json?.data ?? json },
+            '*',
+          );
+
+        } catch (err) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save Address';
+          setStatus('⚠ ' + err.message, 'error-msg');
+        }
+      });
+
+      /* ── Validation ── */
+      function validateForm() {
+        let valid = true;
+
+        const required = [
+          { el: fLine1,   label: 'Address Line 1' },
+          { el: fPincode, label: 'Pincode' },
+        ];
+
+        required.forEach(({ el, label }) => {
+          if (!el.value.trim()) {
+            el.classList.add('error');
+            valid = false;
+          } else {
+            el.classList.remove('error');
+          }
+        });
+
+        if (!resolvedCityId) {
+          setStatus('⚠ City could not be matched. Re-confirm pin location.', 'error-msg');
+          valid = false;
+        }
+
+        if (!valid && resolvedCityId) {
+          setStatus('⚠ Please fill in the required fields.', 'error-msg');
+        }
+
+        return valid;
+      }
+
+      function setStatus(msg, cls) {
+        statusMsg.textContent = msg;
+        statusMsg.className = 'status-msg ' + cls;
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "created_success": "Category created successfully",
+  "retrieved_success": "Category retrieved successfully",
+  "all_retrieved_success": "Categories retrieved successfully",
+  "updated_success": "Category updated successfully",
+  "deleted_success": "Category deleted successfully",
+  "not_found": "Category not found",
+  "slug_exists": "A category with this slug already exists",
+  "self_parent": "A category cannot be its own parent"
+}

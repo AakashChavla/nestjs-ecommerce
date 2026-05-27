@@ -1,0 +1,8 @@
+{
+  "retrieved_success": "पता सफलतापूर्वक प्राप्त हुआ",
+  "all_retrieved_success": "पते सफलतापूर्वक प्राप्त हुए",
+  "updated_success": "पता सफलतापूर्वक अपडेट हो गया",
+  "deleted_success": "पता सफलतापूर्वक हटाया गया",
+  "not_found": "पता नहीं मिला",
+  "city_not_found": "शहर नहीं मिला"
+}

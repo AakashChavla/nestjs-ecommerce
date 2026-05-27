@@ -1,0 +1,7 @@
+{
+  "is_required": "{field} is Required",
+  "min_character": "{field} should have minimum {count}",
+  "max_character": "{field} should have maximum {count}",
+  "invalid": "Invalid {field}",
+  "password_strength": "{field} must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters"
+}

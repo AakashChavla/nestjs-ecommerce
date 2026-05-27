@@ -14,6 +14,7 @@ export class DatabaseService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
+  [x: string]: any;
   private readonly logger = new Logger(DatabaseService.name);
   private pool: Pool;
 

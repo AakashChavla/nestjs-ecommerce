@@ -49,6 +49,16 @@ enum UserRole {
 }
 
 // ============================================
+// WHATSAPP AUTH STATE TABLE
+// ============================================
+model WhatsAppAuthState {
+  id        String   @id @default("singleton") // one row per provider instance
+  creds     Json
+  keys      Json
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
 // ADDRESS ENUMS
 // ============================================
 

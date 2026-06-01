@@ -3,10 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { I18nService } from 'nestjs-i18n';
-import { MailService } from 'src/common/config/mail/mail.service';
-import { BusinessException, NotFoundException } from 'src/common/exceptions';
+import { NotFoundException } from 'src/common/exceptions';
 import { UserRepository } from '../user/user.repository';
-import { DEFAULT_TOKEN_EXPIRY, TokenType } from './constants/auth.constants';
+import { DEFAULT_TOKEN_EXPIRY } from './constants/auth.constants';
 import { LoginDto } from './dto/login.dto';
 import { JwtAccessPayload, JwtRefreshPayload } from './types/auth.types';
 
@@ -14,71 +13,10 @@ import { JwtAccessPayload, JwtRefreshPayload } from './types/auth.types';
 export class AuthService {
   constructor(
     private userRepository: UserRepository,
-    private mailService: MailService,
     private i18nService: I18nService,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
-
-  async verifyEmail(token: string) {
-    try {
-      // Verify and decode the token
-      const payload = this.jwtService.verify(token, {
-        secret: this.configService.getOrThrow<string>(
-          'JWT_VERIFICATION_SECRET_TOKEN',
-        ),
-      });
-
-      // Check if token type is correct
-      if (payload.type !== TokenType.EMAIL_VERIFICATION) {
-        throw new BusinessException(
-          this.i18nService.t('user.verification.invalid_token'),
-          'INVALID_VERIFICATION_TOKEN',
-        );
-      }
-
-      // Find the user
-      const user = await this.userRepository.findById(payload.userId);
-
-      if (!user) {
-        throw new NotFoundException(
-          this.i18nService.t('user.verification.user_not_found'),
-          'USER_NOT_FOUND',
-        );
-      }
-
-      // Check if email is already verified
-      if (user.emailVerified) {
-        return {
-          message: this.i18nService.t('user.verification.already_verified'),
-          data: { emailVerified: true },
-        };
-      }
-
-      // Update user to mark email as verified
-      await this.userRepository.markEmailAsVerified(user.id);
-
-      const name = user.name ?? user.email;
-      await this.mailService.sendVerifiedSuccessMail(user.email, name);
-      return {
-        message: this.i18nService.t('user.verification.success'),
-        data: { emailVerified: true },
-      };
-    } catch (error) {
-      if (error instanceof Error && error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException(
-          this.i18nService.t('user.verification.token_expired'),
-        );
-      }
-      if (error instanceof Error && error.name === 'JsonWebTokenError') {
-        throw new BusinessException(
-          this.i18nService.t('user.verification.invalid_token'),
-          'INVALID_TOKEN',
-        );
-      }
-      throw error;
-    }
-  }
 
   async login(dto: LoginDto) {
     const { email, password } = dto;

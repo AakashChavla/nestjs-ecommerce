@@ -9,3 +9,5 @@ export * from './morgan/morgan.config';
 export * from './s3/s3.service';
 export * from './s3/s3.module';
 export * from './s3/file-validation.pipe';
+export * from './redis/redis.module';
+export * from './redis/redis.service';

@@ -1,7 +1,15 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserService } from './user.service';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -44,5 +52,23 @@ export class UserController {
   })
   async registerSeller(@Body() registerUserDto: RegisterUserDto) {
     return await this.userService.registerSeller(registerUserDto);
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify user email using OTP' })
+  @ApiBody({ type: VerifyOtpDto })
+  @ApiOkResponse({
+    description: 'Email verified successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid or expired OTP',
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  async verifyEmail(@Body() verifyEmailDto: VerifyOtpDto) {
+    return await this.userService.verifyEmail(verifyEmailDto);
   }
 }

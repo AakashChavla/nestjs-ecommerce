@@ -9,7 +9,9 @@
     "success": "Email verified successfully",
     "token_expired": "Verification link has expired. Please request a new verification email.",
     "invalid_token": "Invalid verification token",
-    "user_not_found": "User not found"
+    "user_not_found": "User not found",
+    "otp_expired": "OTP has expired. Please register again to receive a new OTP.",
+    "otp_invalid": "Invalid OTP. Please check and try again."
   },
   "auth": {
     "invalid_credential": "Invalid Email And Password",

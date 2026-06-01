@@ -122,9 +122,10 @@ export class MailService implements OnModuleInit {
     }
   }
 
-  async sendOtp(email: string, otp: string) {
+  async sendOtp(email: string, name: string, otp: string) {
     const subject = 'Your OTP for Verification';
     const message = `
+    <p>Hello <strong>${name}</strong>,</p>
     Your OTP for verification is: <strong>${otp}</strong>.<br/><br/>
     This OTP is valid for <strong>5 minutes</strong>. 
     Please use it to complete your verification process.

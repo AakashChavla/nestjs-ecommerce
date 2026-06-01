@@ -4,7 +4,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -15,8 +14,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -29,26 +26,6 @@ import { CurrentUser } from './decorator/current-user.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  @Get('verify-email/:token')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Verify user email address' })
-  @ApiParam({
-    name: 'token',
-    description: 'Email verification token',
-    type: String,
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Email verified successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid or expired token',
-  })
-  async verifyEmail(@Param('token') token: string) {
-    return await this.authService.verifyEmail(token);
-  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)

@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { I18nService } from 'nestjs-i18n';
 import { MailService } from 'src/common/config/mail/mail.service';
-import { ConflictException } from 'src/common/exceptions';
+import {
+  BusinessException,
+  ConflictException,
+  NotFoundException,
+} from 'src/common/exceptions';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserRepository } from './user.repository';
+import { generateOtp } from 'src/common/helpers/otp.helper';
+import { RedisService } from 'src/common/config/redis/redis.service';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
 export class UserService {
@@ -15,8 +20,7 @@ export class UserService {
     private userRepository: UserRepository,
     private mailService: MailService,
     private i18n: I18nService,
-    private jwtService: JwtService,
-    private configService: ConfigService,
+    private redisService: RedisService,
   ) {}
 
   private async registerAccount(
@@ -24,66 +28,42 @@ export class UserService {
     role: UserRole,
     successMessageKey: string,
   ) {
-    // Check if user already exists
     const existingUser = await this.userRepository.findByEmail(dto.email);
 
-    // Hash the password
-    const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(dto.password, saltRounds);
-
-    let user;
-
-    // If user exists but email is not verified, allow re-registration
-    if (existingUser && !existingUser.emailVerified) {
-      // Update existing user data
-      user = await this.userRepository.updateFields(existingUser.id, {
-        name: dto.name,
-        role,
-        passwordHash,
-        isActive: true,
-      });
-    } else if (existingUser?.emailVerified) {
-      // If user exists and email is verified, throw error
+    // Guard first — avoid hashing password if we're going to throw anyway
+    if (existingUser?.emailVerified) {
       throw new ConflictException(
         this.i18n.t('user.registration.email_exists'),
         'EMAIL_ALREADY_EXISTS',
       );
-    } else {
-      // Create new user
-      user = await this.userRepository.create({
-        email: dto.email,
-        name: dto.name,
-        role,
-        passwordHash,
-        emailVerified: false,
-        isActive: true,
-      });
     }
 
-    // Generate email verification token (expires in 24 hours)
-    const verificationToken = this.jwtService.sign(
-      { email: user.email, userId: user.id, type: 'email-verification' },
-      {
-        expiresIn: '24h',
-        secret: this.configService.getOrThrow<string>(
-          'JWT_VERIFICATION_SECRET_TOKEN',
-        ),
-      },
-    );
+    const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    // Create verification URL
-    const baseUrl =
-      this.configService.get('APP_URL') || 'http://localhost:8008';
-    const verificationUrl = `${baseUrl}/api/v1/auth/verify-email/${verificationToken}`;
+    const user = existingUser
+      ? await this.userRepository.updateFields(existingUser.id, {
+          name: dto.name,
+          role,
+          passwordHash,
+          isActive: true,
+        })
+      : await this.userRepository.create({
+          email: dto.email,
+          name: dto.name,
+          role,
+          passwordHash,
+          emailVerified: false,
+          isActive: true,
+        });
 
-    // Send verification email
-    const userEmail = user.email || dto.email;
+    const otp = generateOtp(6);
+    const userEmail = user.email ?? dto.email;
     const userName = user.name ?? dto.name;
-    await this.mailService.sendVerificationEmail(
-      userEmail,
-      userName,
-      verificationUrl,
-    );
+
+    // Store OTP before sending the email — prevents the user
+    // receiving an OTP they can never verify if Redis write fails
+    await this.redisService.set(`otp_register:${user.email}`, otp, 15 * 60);
+    await this.mailService.sendOtp(userEmail, userName, otp);
 
     return {
       message: this.i18n.t(successMessageKey),
@@ -105,5 +85,57 @@ export class UserService {
       UserRole.SELLER,
       'user.registration.seller_success',
     );
+  }
+
+  async verifyEmail(dto: VerifyOtpDto) {
+    const { email, otp } = dto;
+
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException(
+        this.i18n.t('user.verification.user_not_found'),
+        'USER_NOT_FOUND',
+      );
+    }
+
+    if (user.emailVerified) {
+      return {
+        message: this.i18n.t('user.verification.already_verified'),
+        data: { emailVerified: true },
+      };
+    }
+
+    const storedOtp = await this.redisService.get(`otp_register:${email}`);
+    if (!storedOtp) {
+      throw new BusinessException(
+        this.i18n.t('user.verification.otp_expired'),
+        'OTP_EXPIRED',
+      );
+    }
+
+    if (storedOtp !== otp) {
+      throw new BusinessException(
+        this.i18n.t('user.verification.otp_invalid'),
+        'OTP_INVALID',
+      );
+    }
+
+    // DB write and Redis cleanup are independent — run in parallel
+    await Promise.all([
+      this.userRepository.markEmailAsVerified(user.id),
+      this.redisService.del(`otp_register:${email}`),
+    ]);
+
+    // Success email is non-critical — fire and forget, don't block the response
+    this.mailService
+      .sendVerifiedSuccessMail(user.email, user.name ?? user.email)
+      .catch((err) =>
+        console.error('Failed to send verification success email', err),
+      );
+
+    return {
+      message: this.i18n.t('user.verification.success'),
+      data: { emailVerified: true },
+    };
   }
 }

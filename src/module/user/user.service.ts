@@ -16,6 +16,9 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
 export class UserService {
+  private static readonly OTP_TTL_SECONDS = 15 * 60;
+  private static readonly OTP_KEY_PREFIX = 'otp_register';
+
   constructor(
     private userRepository: UserRepository,
     private mailService: MailService,
@@ -62,7 +65,11 @@ export class UserService {
 
     // Store OTP before sending the email — prevents the user
     // receiving an OTP they can never verify if Redis write fails
-    await this.redisService.set(`otp_register:${user.email}`, otp, 15 * 60);
+    await this.redisService.set(
+      `${UserService.OTP_KEY_PREFIX}:${user.email}`,
+      otp,
+      UserService.OTP_TTL_SECONDS,
+    );
     await this.mailService.sendOtp(userEmail, userName, otp);
 
     return {
@@ -105,7 +112,9 @@ export class UserService {
       };
     }
 
-    const storedOtp = await this.redisService.get(`otp_register:${email}`);
+    const storedOtp = await this.redisService.get(
+      `${UserService.OTP_KEY_PREFIX}:${email}`,
+    );
     if (!storedOtp) {
       throw new BusinessException(
         this.i18n.t('user.verification.otp_expired'),
@@ -123,7 +132,7 @@ export class UserService {
     // DB write and Redis cleanup are independent — run in parallel
     await Promise.all([
       this.userRepository.markEmailAsVerified(user.id),
-      this.redisService.del(`otp_register:${email}`),
+      this.redisService.del(`${UserService.OTP_KEY_PREFIX}:${email}`),
     ]);
 
     // Success email is non-critical — fire and forget, don't block the response

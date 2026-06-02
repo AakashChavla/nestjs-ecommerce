@@ -98,6 +98,10 @@ import { CategoryModule } from './module/category/category.module';
           .valid('true', 'false')
           .default('true'),
         HTTP_LOG_FILE_PATH: Joi.string().optional(),
+        WHATSAPP_PROVIDER: Joi.string().optional(),
+        REDIS_URL: Joi.string().required().messages({
+          'any.required': 'REDIS_URL is required',
+        }),
       }),
       validationOptions: {
         abortEarly: false,

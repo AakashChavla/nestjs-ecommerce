@@ -27,6 +27,7 @@
 16. [Rate Limiting](#16-rate-limiting)
 17. [File Uploads & S3](#17-file-uploads--s3)
 18. [Email Service](#18-email-service)
+18a. [WhatsApp Service](#18a-whatsapp-service)
 19. [Google Maps Integration](#19-google-maps-integration)
 20. [Code Quality & Formatting](#20-code-quality--formatting)
 21. [Testing](#21-testing)
@@ -41,12 +42,13 @@
 
 This is a **modular, scalable NestJS REST API** for an e-commerce platform. It currently exposes:
 
-| Domain  | Status        | Notes                                      |
-| ------- | ------------- | ------------------------------------------ |
-| Auth    | Active        | JWT access + refresh tokens, email verify  |
-| User    | Active        | Registration, profile management           |
-| Address | Active        | Polymorphic addresses, geocoding, map pick |
-| Product | Scaffold only | Controller/service/repo stubs, not wired   |
+| Domain   | Status | Notes                                                      |
+| -------- | ------ | ---------------------------------------------------------- |
+| Auth     | Active | JWT access + refresh tokens, email verify, OTP via WhatsApp |
+| User     | Active | Registration, profile management, mobile OTP verification  |
+| Address  | Active | Polymorphic addresses, geocoding, map pick                 |
+| Category | Active | Hierarchical categories with icon support, admin-managed   |
+| Product  | Active | Products, variants, attributes, slugs, category-linked     |
 
 The application is a **JSON-only REST API**. No server-side rendering. Static files are served from `/static` (e.g., `Map.html` for the map picker UI).
 
@@ -97,7 +99,9 @@ src/
 │   │   ├── google-map/        # GoogleMapsService
 │   │   ├── mail/              # MailService + templates
 │   │   ├── morgan/            # HTTP logging configuration
-│   │   └── s3/                # S3AwsService + FileValidationPipe
+│   │   ├── redis/             # RedisService (OTP cache, ephemeral KV store)
+│   │   ├── s3/                # S3AwsService + FileValidationPipe
+│   │   └── whatsapp/          # WhatsAppService + providers + templates
 │   ├── dto/                   # Shared DTOs: PaginationDto, ResponseDto, etc.
 │   ├── exceptions/            # AppException hierarchy
 │   ├── helpers/
@@ -116,6 +120,7 @@ src/
     ├── auth/
     ├── user/
     ├── address/
+    ├── category/
     └── product/
 
 prisma/
@@ -176,6 +181,17 @@ MAIL_FROM_NAME=E-Commerce API
 GOOGLE_MAPS_API_KEY=...
 GOOGLE_MAPS_GEOCODING_BASE_URL=https://maps.googleapis.com/maps/api/geocode/json
 
+# AWS S3
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=ap-south-1
+AWS_BUCKET_NAME=...
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# WhatsApp (Baileys provider)
+WHATSAPP_PROVIDER=baileys              # currently only 'baileys' is supported
 # Morgan HTTP Logging
 ENABLE_HTTP_LOGGING=true
 HTTP_LOG_FORMAT=auto           # auto | dev | combined | short | tiny | custom
@@ -529,12 +545,16 @@ The app supports **English (`en`)** and **Hindi (`hi`)**. Language is resolved i
 src/common/i18n/
 ├── en/
 │   ├── address.json
+│   ├── category.json
 │   ├── common.json
+│   ├── product.json
 │   ├── user.json
 │   └── validation.json
 └── hi/
     ├── address.json
+    ├── category.json
     ├── common.json
+    ├── product.json
     ├── user.json
     └── validation.json
 ```
@@ -672,7 +692,49 @@ Email HTML templates live in `mail.template.ts`. Templates are TypeScript functi
 
 ---
 
-## 19. Google Maps Integration
+## 18a. WhatsApp Service
+
+`WhatsAppService` (in `src/common/config/whatsapp/`) provides WhatsApp messaging via a pluggable provider architecture. The current provider is **Baileys** (open-source WhatsApp Web library).
+
+### Provider Architecture
+
+```
+whatsapp/
+├── whatsapp.service.ts           # Single entry point — inject this
+├── whatsapp.template.ts          # Message templates (TypeScript functions)
+├── whatsapp.module.ts
+├── index.ts                      # Barrel export
+├── interfaces/
+│   └── whatsapp-provider.interface.ts  # IWhatsAppProvider contract
+└── providers/
+    ├── baileys.provider.ts             # Baileys implementation
+    └── whatsapp-provider.factory.ts    # Reads WHATSAPP_PROVIDER and creates instance
+```
+
+To add a new provider: implement `IWhatsAppProvider`, register it in `WhatsAppProviderFactory`. Zero changes to callers.
+
+### Available `WhatsAppService` Methods
+
+| Method                          | Description                                      |
+| ------------------------------- | ------------------------------------------------ |
+| `sendOtp(mobile, otp)`          | Sends a numeric OTP via WhatsApp.                |
+| `sendMobileVerifiedMessage(mobile, name)` | Confirms mobile verification success.  |
+| `sendEmailVerifiedMessage(mobile, name)`  | Confirms email verification success.   |
+| `sendWelcomeMessage(mobile, name)`        | Sends onboarding welcome message.      |
+| `sendOrderPlacedNotification(mobile, orderId, total)` | Order confirmation.      |
+| `sendOrderShippedNotification(mobile, ...)`           | Shipping update.         |
+
+### Rules
+
+- Always call `WhatsAppService` from the **service layer** — never from a controller or repository.
+- Phone numbers must be in **E.164 format** (`+91XXXXXXXXXX`). Enforce this in DTOs with `REGEX.MOBILE`.
+- The Baileys session state is persisted in the database (table `WhatsappAuthState`). Do not store it in the filesystem.
+- On first startup with a fresh session, a QR code is printed to stdout — scan it once to authenticate. After that, the session auto-reconnects.
+- Message templates live in `whatsapp.template.ts` — never inline message strings in services.
+- Never expose the raw `WhatsAppSendResult` object to API clients.
+- `WHATSAPP_PROVIDER` is optional — if omitted, it defaults to `'baileys'`.
+
+---
 
 `GoogleMapsService` provides geocoding (address → coordinates) via the Google Geocoding API.
 
@@ -1076,6 +1138,8 @@ These services are provided by `CommonModule` and available to any feature modul
 | `MailService`       | `src/common/config/mail/mail.service.ts`              | Nodemailer wrapper. Provides `sendMail()` and template-based methods.                                                                                                                                                                                                      |
 | `GoogleMapsService` | `src/common/config/google-map/google-maps.service.ts` | Geocoding and reverse-geocoding via Google Maps API.                                                                                                                                                                                                                       |
 | `S3AwsService`      | `src/common/config/s3/s3.service.ts`                  | AWS S3 service. Methods: `upload()` (single-request, images/docs), `uploadLarge()` (multipart, always use for videos), `getPresignedUrl()`, `getPresignedUploadUrl()`, `delete()`, `deleteMany()`, `exists()`, `getPublicUrl()`, `buildKey()`. Inject from `CommonModule`. |
+| `RedisService`      | `src/common/config/redis/redis.service.ts`            | ioredis wrapper. Methods: `set(key, value, ttlSeconds)`, `get(key)`, `del(key)`. Used for OTP caching and short-lived KV storage. Requires `REDIS_URL` env var. Inject from `CommonModule`.                                                                                |
+| `WhatsAppService`   | `src/common/config/whatsapp/whatsapp.service.ts`      | WhatsApp messaging via pluggable provider (currently Baileys). See §18a for available methods and rules. Requires `WHATSAPP_PROVIDER` env var (defaults to `'baileys'`). Inject from `CommonModule`.                                                                        |
 
 ---
 
@@ -1085,9 +1149,9 @@ Location: `src/common/config/mail/mail.template.ts`
 
 All email HTML is defined as TypeScript functions in this file. Do not create separate template files.
 
-| Function Name                             | Description |
-| ----------------------------------------- | ----------- |
-| _(add rows as templates are implemented)_ |             |
+| Function Name             | Signature                                         | Description                                                                                          |
+| ------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `generateEmailTemplate`   | `generateEmailTemplate(subject, message): string` | Generic branded HTML email layout. Pass a subject string and an HTML message body. Used by all transactional emails (OTP, verification, etc.). |
 
 ---
 
@@ -1115,7 +1179,53 @@ These are exported standalone functions — reuse them if a custom strategy or m
 
 ---
 
-### How to Add a New Reusable Item
+### 25.14 WhatsApp Types & Interfaces
+
+Location: `src/common/config/whatsapp/interfaces/whatsapp-provider.interface.ts`
+Barrel export: `src/common/config/whatsapp/index.ts`
+
+| Name                   | Kind        | Description                                                                                                   |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------------- |
+| `WhatsAppMessage`      | Interface   | Payload for sending a message: `{ to: string (E.164), body: string }`.                                        |
+| `WhatsAppSendResult`   | Interface   | Return value of `sendMessage()`: `{ messageId, to, provider, sentAt }`.                                       |
+| `IWhatsAppProvider`    | Interface   | Contract all providers must implement: `providerName`, `initialize()`, `sendMessage()`, `destroy()`.           |
+| `WhatsAppProviderName` | Type        | `'baileys'` — union of valid `WHATSAPP_PROVIDER` values. Extend this when adding a new provider.              |
+| `WhatsAppTemplateName` | Type alias  | `keyof typeof whatsAppTemplates` — keyof the template map. Use to type template name parameters.              |
+
+Location: `src/common/config/whatsapp/whatsapp.template.ts`
+
+The `whatsAppTemplates` object contains the following template functions:
+
+| Key                | Signature                                    | Description                             |
+| ------------------ | -------------------------------------------- | --------------------------------------- |
+| `otp`              | `(otp: string) => string`                    | OTP message body.                       |
+| `mobileVerified`   | `(name: string) => string`                   | Mobile number verified confirmation.    |
+| `emailVerified`    | `(name: string) => string`                   | Email address verified confirmation.    |
+| `welcome`          | `(name: string) => string`                   | Onboarding welcome message.             |
+| `orderPlaced`      | `(orderId: string, total: string) => string` | Order placed notification.              |
+| `orderShipped`     | `(orderId: string, ...) => string`           | Order shipped notification.             |
+
+**Rule:** All new WhatsApp message text must be added as a key in `whatsAppTemplates` — never inline strings in service methods.
+
+---
+
+### 25.15 OTP Helper
+
+Location: `src/common/helpers/`
+Barrel export: `src/common/helpers/index.ts`
+
+| Name          | Signature                             | File             | Description                                                                                                      |
+| ------------- | ------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `generateOtp` | `generateOtp(length?: number): string` | `otp.helper.ts` | Generates a cryptographically random numeric OTP of the given length (default 6). Uses `crypto.randomInt` — never use `Math.random()` for OTPs. |
+
+OTP lifecycle (as implemented in `UserService`):
+
+- Key prefix: `otp_register:<userId>`
+- TTL: 15 minutes (`OTP_TTL_SECONDS = 900`)
+- Storage: `RedisService.set()` / `RedisService.get()` / `RedisService.del()`
+- Delivery: `WhatsAppService.sendOtp()`
+
+---
 
 When you (or an AI tool) create something reusable, follow these steps:
 
@@ -1128,4 +1238,4 @@ If you are an AI assistant completing a task and you created something reusable,
 
 ---
 
-_Last updated: May 2026 — keep this document in sync with the codebase._
+_Last updated: June 2026 — keep this document in sync with the codebase._

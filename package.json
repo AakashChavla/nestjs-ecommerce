@@ -19,7 +19,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "husky",
-    "docker:run": "docker compose up"
+    "docker:start": "docker compose up -d",
+    "docker:stop": "docker compose down -v",
+    "prisma:migrate": "npx prisma migrate deploy"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1041.0",
